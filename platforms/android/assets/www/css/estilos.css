@@ -1,0 +1,303 @@
+.header{
+	background:#123283; /*#13336F;*/
+	height:2.8125em;
+	}
+	
+.header2{
+	/*background: url(../img/sf.png) top repeat-x; */
+	background:#123283;  /*2E5E8D*/
+	height:7.375em;
+	}
+	
+.logo-sf{
+		background-image:url(../img/chumuCab.png);
+		position:absolute; left:20%; margin-left:-55px;		
+		width:100%;
+		height:7.375em;
+		background-repeat: no-repeat;
+	}
+
+#hlog2 {
+	width:260px;
+	margin:auto;
+}
+.lsanfer{
+		background-image: url(../img/chumuCab.png);
+		float:left;
+		/*width:8.75em;*/
+		width:2.2125em;
+		height:2.8125em;
+		}
+		
+/*		
+table {
+	color: black;
+	background: #fff;
+	border: 1px solid #b4b4b4;
+	font: bold 12px helvetica;
+	padding: 0;
+	margin-top:10px;
+	width: 100%;
+	-webkit-border-radius: 8px;
+}
+	 
+table tr td {
+	color: #666;
+	border-bottom: 1px solid #b4b4b4;
+	border-right: 1px solid #b4b4b4;
+	padding: 10px 10px 10px 10px;
+	background-image: -webkit-linear-gradient(top, #fdfdfd, #eee);
+}
+
+table tr td:last-child {
+	border-right: none;
+}
+
+table tr:last-child td {
+	border-bottom: none;
+} 
+*/
+
+.tabla_titulo {  
+    padding: 10px 10px 10px 10px;
+	background-color:#13336F; 
+	color:#FFFFFF ;
+	border: 1px solid #b4b4b4;
+	font: bold 12px helvetica;
+	height:30px;
+	-webkit-border-radius: 8px;				
+}  
+
+.table-stroke thead th {
+  border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+.table-stroke tbody th,
+.table-stroke tbody td {
+  border-bottom: 1px solid rgba(0, 0, 0, .05);
+}
+
+
+
+.logo-sf{
+		background-image:url(../img/chumuCab.png);
+		position:absolute; 
+		margin-left:-55px;
+		width:100%;
+		height:7.375em;
+		left:30%; 
+		background-repeat: no-repeat;
+}
+
+
+input[type=number] {
+text-align:right;
+}
+
+#cargando{
+	background-color:#ffffff; 
+	width:100%;
+	height:100%; 
+	z-index:500; 
+	position:fixed; 
+	opacity:0.5;
+}
+
+#cargandoimg{
+	width:32px; 
+	height:32px; 
+	left:50%; 
+	top:50%; 
+	margin-left-16px; 
+	margin-top:-16px; 
+	z-index:501; 
+	position:absolute;
+}
+
+ul.menuprincipal li a{	
+	padding-top :0px !important;
+	padding-left :40px !important;
+	padding-rigth :40px !important;
+	padding-bottom :0px !important;
+	font-size:1px !important;
+	font-size-adjust:5px !important;
+}
+
+.contenido {
+	padding-top :0px !important;
+	padding-bottom :0px !important;
+}
+
+.margen{
+	/*margin: .9em 0 !important;*/
+	font-size:15px !important;
+}
+
+.topicon{
+	margin-top: 9px !important;
+}
+
+.margen2{
+	margin-top: 11px !important;
+}
+
+select option {
+    font-size:11px;
+	/*padding:8px;*/
+}
+
+
+@media all and (min-width: 65em) {
+	.my-breakpoint.ui-grid-b .ui-block-a 
+	.my-breakpoint.ui-grid-b .ui-block-b { width: 70.95%; }, 
+	.my-breakpoint.ui-grid-b .ui-block-c { width: 10.925%; }
+	.my-breakpoint.ui-grid-b .ui-block-a { clear: left; }
+	}
+}
+
+
+@media all and (min-width: 75em) {
+	.dosColumnas.ui-grid-a .ui-block-a { width: 30%; }
+	.dosColumnas.ui-grid-a .ui-block-b, 
+	.dosColumnas.ui-grid-a .ui-block-b { clear: left; }
+	}
+}
+
+
+.ui-selectmenu.ui-popup .ui-input-search {
+    margin-left: .5em;
+    margin-right: .5em;
+}
+.ui-selectmenu.ui-dialog .ui-content {
+    padding-top: 0;
+}
+.ui-selectmenu.ui-dialog .ui-selectmenu-list {
+    margin-top: 0;
+}
+.ui-selectmenu.ui-popup .ui-selectmenu-list li.ui-first-child .ui-btn {
+    border-top-width: 1px;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+}
+.ui-selectmenu.ui-dialog .ui-header {
+    border-bottom-width: 1px;
+}
+
+
+
+/**EStilo nuevo*/
+
+.ui-selectmenu.ui-popup .ui-input-search {
+    margin-left: .5em;
+    margin-right: .5em;
+}
+.ui-selectmenu.ui-dialog .ui-content {
+    padding-top: 0;
+}
+.ui-selectmenu.ui-dialog .ui-selectmenu-list {
+    margin-top: 0;
+}
+.ui-selectmenu.ui-popup .ui-selectmenu-list li.ui-first-child .ui-btn {
+    border-top-width: 1px;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+}
+.ui-selectmenu.ui-dialog .ui-header {
+    border-bottom-width: 1px;
+}
+
+
+/* ---Tabla-----*/
+
+.movie-list thead th,
+.movie-list tbody tr:last-child {
+	border-bottom: 1px solid #d6d6d6; /* non-RGBA fallback */
+	border-bottom: 1px solid rgba(0,0,0,.1);
+}
+.movie-list tbody th,
+.movie-list tbody td {
+	border-bottom: 1px solid #e6e6e6; /* non-RGBA fallback  */
+	border-bottom: 1px solid rgba(0,0,0,.05);
+}
+.movie-list tbody tr:last-child th,
+.movie-list tbody tr:last-child td {
+	border-bottom: 0;
+}
+.movie-list tbody tr:nth-child(odd) td,
+.movie-list tbody tr:nth-child(odd) th {
+	background-color: #eeeeee; /* non-RGBA fallback  */
+	background-color: rgba(0,0,0,.04);
+}
+
+
+
+@media ( min-width: 35em ) {
+
+	/* wrap on wide viewports once open */
+
+	.ui-panel-page-content-open.ui-panel-page-content-position-left {
+		margin-right: 17em;
+	}
+	.ui-panel-page-content-open.ui-panel-page-content-position-right {
+		margin-left: 17em;
+	}
+	.ui-panel-page-content-open {
+		width: auto;
+	}
+
+	/* disable "dismiss" on wide viewports */
+	.ui-panel-dismiss {
+		display: none;
+	}
+
+	/* same as the above but for panels with display mode "push" only */
+
+	.ui-panel-page-content-open.ui-panel-page-content-position-left.ui-panel-page-content-display-push {
+		margin-right: 17em;
+	}
+	.ui-panel-page-content-open.ui-panel-page-content-position-right.ui-panel-page-content-display-push {
+		margin-left: 17em;
+	}
+	.ui-panel-page-content-open.ui-panel-page-content-display-push {
+		width: auto;
+	}
+
+	.ui-panel-dismiss-display-push {
+		display: none;
+	}
+}
+
+
+
+.table-scroll {
+  position: relative;
+  width:100%;
+  z-index: 1;
+  margin: auto;
+  overflow: auto;
+  height: 350px;
+}
+
+
+.table-scroll table {
+  width: 100%;
+  margin: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+
+.table-wrap {
+  position: relative;
+}
+.table-scroll th,
+.table-scroll td {
+  padding: 5px 10px;
+  vertical-align: top;
+}
+.table-scroll thead th {
+  background: #bbb;
+  color: #333;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+} 

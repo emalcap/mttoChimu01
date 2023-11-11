@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="es_PE">
+
+<head>
+    <title>Mtto Chimu</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta property="og:locale:alternate" content="es_PE" />
+
+    <link rel="stylesheet" href="css/jquery.mobile-1.4.5.css" />
+    <link rel="stylesheet" href="css/theme-classic.css" />
+
+    <link rel="stylesheet" href="css/normalize.css" />
+    <link rel="stylesheet" href="css/estilos.css" />
+
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script>
+        $(document).bind('mobileinit', function () {
+            $.mobile.pushStateEnabled = false;
+            $.support.touchOverflow = true;
+            $.mobile.touchOverflowEnabled = true;
+            $.mobile.allowCrossDomainPages = true;
+        });  
+    </script>
+    <script src="js/jquery.mobile-1.4.5.min.js" type="text/javascript"></script>
+    <script src="js/funciones.js" type="text/javascript"></script>
+    <script src="js/bdLocal.js" type="text/javascript"></script>
+    <script src="js/funcAvisos.js" type="text/javascript"></script>
+    <script src="js/funcMttoUsu.js" type="text/javascript"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+
+    <script type="text/javascript" src="js/bluetooth.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script id="panel-init">
+        $(function () {
+            $("body>[data-role='panel']").panel();
+            $("[data-role=panel]").panel().enhanceWithin();
+        });
+        $(document).on("pagecreate", function () {
+            $("[data-role=panel]").one("panelbeforeopen", function () {
+                var height = $.mobile.pageContainer.pagecontainer("getActivePage").outerHeight();
+                $(".ui-panel-wrapper").css("height", height + 1);
+            });
+        });
+        /*$(function () {
+            $("[data-role=header],[data-role=footer]").toolbar().enhanceWithin();
+            $("[data-role=panel]").panel().enhanceWithin();
+        });
+    	
+        */
+    </script>
+
+    <script type="text/javascript">
+
+        app.initialize();
+
+        var timeoutHandle;
+        var db;
+        var bdLocal = "N"
+        var tipoEnvio = ""
+        var nivelLista = ""
+        var gorigen, gopcion
+
+        var gpagina = ""
+        var gGrabaCab = "N"
+        var gcodRuta = ""
+
+        //Setea AJAX tiempo maximo de espera por una respuesta( 10 segundos).
+        $.ajaxSetup({
+            timeout: 10 * 1000
+        });
+
+        function onLoad() {
+            $("#cargando").hide();
+            // AbrirBDLocal();
+            Inicio();
+        }
+
+
+        document.addEventListener('backbutton', onBackKeyDown, false);
+
+        function onBackKeyDown(event) {
+
+            event.preventDefault();
+            if ($.mobile.activePage.is('#pageLogin')) {
+                navigator.app.exitApp();
+            }
+            else if ($.mobile.activePage.is('#pListaMaterial')) {
+                regresarLista(gorigen, gopcion)
+                $("#btnRegresaLista").click()
+            } else {
+                return false;
+            }
+        }
+
+
+        function Inicio() {
+            //console.log(navigator.globalization);
+            var usuario = getLocalStorage("usuario");
+            var password = getLocalStorage("password");
+
+            if (usuario != "" && password != "") {
+                ingresarSistema(usuario, password);
+            }
+        }
+
+        function CerrarSistema() {
+            navigator.app.exitApp();
+        }
+    </script>
+
+
+
+</head>
+
+<body onLoad="onLoad()">
+    <div id="cargando" style="display:none;">
+        <div id="cargandoimg"><img src="img/cargando.gif"></div>
+    </div>
+
+    <div id="pagLogin" data-role="page" data-control-title="Home" data-theme="b">
+        <div class="header2" data-role="header2">
+            <div id="hlog2">
+                <div class="logo-sf"></div>
+            </div>
+        </div>
+        <div data-role="content">
+            <h2>Login</h2>
+            <form method="post" id="loginForm" autocomplete="off">
+                <label for="password">Usuario:</label>
+                <input class="required" type="text" name="username" id="txtUsuario" placeholder="Usuario">
+                <label for="password">Password:</label>
+                <input class="required" type="password" name="password" id="txtPassword" placeholder="password">
+
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><input type="button" value="Ingresar" id="btnIngresar"
+                            onClick="validarLogin();" data-theme="b"></div>
+                    <div class="ui-block-b"><input type="button" value="Salir" id="btnSalir" onClick="cerrarSistema()"
+                            data-theme="d"></div>
+                </div>
+            </form>
+
+            <div id="divloginmensaje" style="text-align:center; display:none; color:#FF0000;">&nbsp;</div>
+            <ul id="app-status-ul" style="display:none;">
+                <li></li>
+            </ul>
+            <p style="text-align:center;" id="deviceProperties">Cargando propiedades...</p>
+        </div>
+
+    </div>
+
+    <div data-role="panel" id="panelOpc" data-position="left" data-display="overlay" data-theme="d">
+        <ul data-role="listview">
+            <li data-icon="home" class=""><a href="#" onClick="$.mobile.changePage('#pagHome')">Home</a></li>
+            <li data-role="list-divider" data-theme="b">Mantenimiento</li>
+            <li data-icon="arrow-r" id="menAvisoMant"><a href="#" onClick="gestionAviso()">Gestión de Avisos de Mtto</a>
+            </li>
+            <li data-icon="arrow-r" id="menOrdenMant"><a href="#"
+                    onClick="$.mobile.changePage('#pagGestionOrdenMant');">Orden de Mantenimiento</a> </li>
+            <li data-icon="arrow-r" id="menCheckList"><a href="#"
+                    onClick="$.mobile.changePage('#pagCheckList');">Plantillas de Check List</a></li>
+            <li data-icon="arrow-r" id="menProgMant"><a href="#"
+                    onclick="$.mobile.changePage('#pagProgramaMant');">Programa de Mantenimiento</a></li>
+            <li data-icon="arrow-r" id="menDocumento"><a href="#"
+                    onclick="$.mobile.changePage('#pagDocumento');">Documentos de Entregabilidad</a></li>
+            <li data-icon="arrow-r" id="menIndicadores"><a href="#" onclick="">Indicadores</a></li>
+            <li data-icon="arrow-r" id="menMttoUsu"><a href="#" onclick="gestionMttoUsuario()">Gestión Usuario</a></li>
+            <li data-role="list-divider" data-theme="b">Opciones</li>
+            <li data-icon="arrow-r"><a href="#" onclick="$.mobile.changePage('#pagConfigurar')">Configuración</a></li>
+            <li data-icon="delete" data-theme="e"><a href="#" onclick="cerrarsesion()" data-rel="close">Cerrar</a></li>
+        </ul>
+    </div><!-- /panel -->
+
+    <div data-role="page" id="pagHome" data-theme="b">
+        <div data-role="header" class="header">
+            <h1> Mtto. Chimu</h1>
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+        </div><!-- /header -->
+        <div role="main" class="ui-content">
+            <div style="text-align:center; margin-top: 8px;" id="divNombreUsuario"></div>
+            <a href="#popup" id="btnPopup" data-rel="dialog" data-transition="pop"></a>
+            <a href="#popupSinServ" id="btnPopupSinc" data-rel="dialog" data-transition="pop"></a>
+            <div class="ui-grid-a" style=" text-align:center">
+                <fieldset class="ui-block-b" id="modAvisoMant">
+                    <a href="#" onclick="gestionAviso()" class="btn" data-role="button" data-theme="c"><img
+                            src="img/MttoAviso.png" width="60px" height="60px" alt="" title="" />
+                    </a>
+                    <label for="name">Gestión de Avisos de Mtto </label>
+                </fieldset>
+                <fieldset class="ui-block-b" id="modOrdenMant">
+                    <a href="#" onclick="$.mobile.changePage('#pagGestionOrdenMant');" class="btn" data-role="button"
+                        data-theme="c"><img src="img/business.png" width="60px" height="60px" alt="" title="" /> </a>
+                    <label for="name">Orden de Mantenimiento</label>
+                </fieldset>
+
+                <fieldset class="ui-block-b" id="modCheckList">
+                    <a href="#" onclick="$.mobile.changePage('#pagCheckList');" class="btn" data-role="button"
+                        data-theme="c"><img src="img/CheckList.png" width="60px" height="60px" alt="" title="" /> </a>
+                    <label for="name">Plantillas de Check List</label>
+                </fieldset>
+                <fieldset class="ui-block-b" id="modProgMant">
+                    <a href="#" onclick="$.mobile.changePage('#pagProgramaMant');" class="btn" data-role="button"
+                        data-theme="c"><img src="img/dashboard.png" width="60px" height="60px" alt="" title="" /> </a>
+                    <label for="name">Programa de Mantenimiento</label>
+                </fieldset>
+
+                <fieldset class="ui-block-b" id="modDocumento">
+                    <a href="#" onclick="$.mobile.changePage('#pagDocumento');" class="btn" data-role="button"
+                        data-theme="c"><img src="img/Documento.png" width="60px" height="60px" alt="" title="" /> </a>
+                    <label for="name">Documentos de Entregabilidad</label>
+                </fieldset>
+                <fieldset class="ui-block-b" id="modIndicadores">
+                    <a href="#" onclick="$.mobile.changePage('#Indicadores');" class="btn" data-role="button"
+                        data-theme="c"><img src="img/Indicadores.jpg" width="60px" height="60px" alt="" title="" /> </a>
+                    <label for="name">Indicadores</label>
+                </fieldset>
+                <fieldset class="ui-block-a" id="modMttoUsu">
+                    <a href="#" data-rel="dialog" onClick="gestionMttoUsuario()" data-transition="pop" class="btn"
+                        data-role="button" data-theme="c"><img src="img/MttoUsuario.jpg" width="60px" height="60px"
+                            alt="" title="" /> </a>
+                    <label for="name">Gestión Usuario</label>
+                </fieldset>
+
+                <fieldset class="ui-block-b">
+                    <a href="#" data-rel="dialog" onClick="$.mobile.changePage('#pagConfigurar')" data-transition="pop"
+                        class="btn" data-role="button" data-theme="c"><img src="img/sincronizaNube.jpg" width="60px"
+                            height="60px" alt="" title="" /> </a>
+                    <label for="name">Configuración</label>
+                </fieldset>
+
+                <fieldset class="ui-block-a">
+                    <a href="#" onclick="cerrarsesion();" class="btn" data-role="button" data-theme="c"><img
+                            src="img/img-ico-cerrar-sesion.png" width="60px" height="60px" alt="" title="" /> </a>
+                    <label for="name">Cerrar Sesión</label>
+                </fieldset>
+
+            </div>
+        </div><!-- /content -->
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="cerrarsesion()" data-icon="delete"
+                            data-iconpos="left">Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </div><!-- /page -->
+
+    <div data-role="page" id="pagListaAvisos" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titTransporte">Listado de Avisos</h1>
+        </div>
+        <div data-role="content" data-theme="b" style="padding-bottom:50px">
+
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="b">
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a">
+                            <select id="cbxAviGrupo" data-native-menu="false" data-mini="true" data-theme="d"
+                                class="filterable-select"></select>
+                        </div>
+                    </div>
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a">
+                            <input type="text" id="txtAviCodUbiTecLis" data-mini="true"
+                                onchange="onchaBusUbiTecList(this)" placeholder="Código UT" data-theme="d"
+                                placeholder="Código UT" autocomplete="off" />
+                        </div>
+                        <div class="ui-block-b">
+                            <button type="button" id="btnBusAviso"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-d ui-mini"
+                                onClick="verPaginaUbicaciones('L')"></button>
+                        </div>
+                    </div>
+                    <!-- <div class="ui-block"> <input type="text" id="txtDesUbiTecLis" data-mini="true"
+                            placeholder="Ubicación Técnica" data-theme="d" autocomplete="off" readonly /></div> -->
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a"><input type="text" id="txtAviAviso" data-mini="true" placeholder="Aviso"
+                                data-theme="d" />
+                        </div>
+                        <div class="ui-block-b">
+                            <button type="button" id="btnBusAviso"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                onClick="listarGestionAvisos()"></button>
+                        </div>
+                    </div>
+                    <div class="ui-block"> <input type="text" id="txtFilter" data-mini="true" placeholder="Busca...."
+                            data-theme="d" autocomplete="off" />
+                    </div>
+                </li>
+            </ul>
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <table id="tabAviso" data-role="table" data-mode="columntoggle:none"
+                            class="ui-body-d ui-shadow movie-list ui-responsive">
+                            <thead>
+                                <tr class="ui-bar-d">
+                                    <th>Nro.</th>
+                                    <th>Aviso</th>
+                                    <th>Tipo</th>
+                                    <th>Fecha</th>
+                                    <th>Titulo</th>
+                                    <th>UT</th>
+                                    <th>Equipo</th>
+                                    <th>Grupo</th>
+                                    <th>Centro</th>
+                                    <th>Estado</th>
+                                    <!--<th>Tiene Ope</th>-->
+                                    <th>Opción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabAvisoBody">
+                                <tr>
+                                    <td colspan=11 style="text-align:rigth">No hay registro ...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer data-position="fixed"-->
+        <div data-role="footer" data-theme="b"
+            style="bottom:0;right:0;top:auto !important ;position:absolute !important;width: 100% !important;">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnEditAviso" onClick="editarAviso('')" data-transition="none"
+                            data-icon="plus" data-iconpos="plus" data-inline="true">Nuevo</button></li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagHome') " data-transition="none"
+                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+
+                </ul>
+            </div><!-- /navbar -->
+        </div><!-- /footer -->
+    </div>
+
+    <div data-role="page" id="pagEditarAviso" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titEditarAviso">Editar Aviso:</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:10px">
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <div class="ui-grid-a">                        
+                        <div class="ui-block-a">
+                        </div>
+                        <div class="ui-block-b">
+                            <div id="divSupAut" style="float:right;" >
+                                <button id="btnSuptAut" data-icon="check" data-role="button" data-inline="true"
+                                    data-mini="true" data-theme="b" onClick="enviarAutorizacion()"> Autorizar</button>
+                            </div>
+                            <p style="float:right;"  id="txtAviDesEstado"></p>
+                        </div>
+                    </div>
+
+                    <fieldset class="ui-grid">
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">General</legend>
+                        <div class="ui-grid">
+                            <div class="ui-block"> <label>Titulo:</label>
+                                <input type="hidden" id="txtAvisoCodigo">
+                                <input type="hidden" id="hidAviEstado">
+                                <input type="text" id="txtAvisoTitulo" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                            <div class="ui-grid"><label>Descripción :</label>
+                                <div id="divDesIni">
+                                    <!--  <input type="text" id="txtAvisoDescIni" data-mini="true" data-theme="d"
+                                        autocomplete="off" disabled />-->
+                                    <textarea name="textarea" id="txtAvisoDescIni" data-mini="true" readonly
+                                        data-theme="d"></textarea>
+                                </div>
+                                <input type="text" id="txtAvisoDesc" data-mini="true" data-theme="d"
+                                    autocomplete="off" />
+                            </div>
+                            <div class="ui-block"><label>Tipo:</label>
+                                <select id="cbxAvisoTip" data-native-menu="false" data-mini="true" data-theme="d"
+                                    class="filterable-select"></select>
+                            </div>
+                        </div><!-- /grid-b -->
+                    </fieldset>
+                    <hr>
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">Objeto Técnico</legend>
+
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Ubicación:</label>
+                                <input type="text" id="txtAviCodUbi" onchange="onchaBusUbiTec(this)" data-mini="true"
+                                    placeholder="" value="" data-theme="d" autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
+                                <button type="button" id="btnBusUbiEdit"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="verPaginaUbicaciones('E')"></button>
+                            </div>
+                        </div>
+                        <div class="ui-grid">
+                            <div class="ui-block"><label>Equipo:</label>
+                                <div id="divcbxAvisoEq">
+                                    <select id="cbxAvisoEq" data-native-menu="false" onchange="onchaEquipo(this)"
+                                        onclick="cargarEventCli()" data-mini="true" data-theme="d"
+                                        class="filterable-select"></select>
+                                    <input type="hidden" id="textFlgCbxEqui">
+                                </div>
+                                <div id="divtxtAvisoEq">
+                                    <input type="text" id="txtAvisoEq" data-mini="true" placeholder="" value=""
+                                        data-theme="d" autocomplete="off" readonly />
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <hr>
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">Responsable de
+                            Mantenimiento
+                        </legend>
+                        <div class="ui-grid"> <label>Puesto:</label>
+                            <input type="text" id="txtAvisoPuesto" data-mini="true" placeholder="" value=""
+                                data-theme="d" autocomplete="off" />
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Grupo:</label>
+                                <select id="cbxAvisoGr" data-native-menu="false" data-mini="true" data-theme="d"
+                                    class="filterable-select"></select>
+                            </div>
+                            <div class="ui-block-b"> <label>Centro PL:</label>
+                                <input type="text" id="txtAvisoCentroPL" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+                    </fieldset>
+                    <hr>
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">Datos Averia</legend>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Fecha Inicio:</label>
+                                <!-- <input type="date" />-->
+                                <input type="date" id="dateAvisoIni" value="2017-06-01" data-mini="true"
+                                    placeholder="Fecha" value="" data-theme="d">
+                            </div>
+                            <div class="ui-block-b"> <label>Hora:</label> <input type="time" step="2" id="timeAvisoHora"
+                                    data-mini="true" placeholder="Fecha" value="" data-theme="d" />
+                            </div>
+                        </div><!-- /grid-b -->
+
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Fecha Deseada:</label>
+                                <input type="date" id="dateAvisoDesea" data-mini="true" placeholder="Fecha Entrega"
+                                    value="2012-3-23" data-theme="d" />
+                            </div>
+                            <div class="ui-block-b">
+                                <label>Parada:</label>
+                                <select id="cbxAvisoParada" data-role="slider" data-mini="true" data-theme="b"
+                                    data-track-theme="d">
+                                    <option value="0">Off</option>
+                                    <option value="1">On</option>
+                                </select>
+                            </div>
+                        </div><!-- /grid-b -->
+                    </fieldset>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnAvisoGrabar" onClick="grabarAviso()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button></li>
+                    <li><button type="button" id="btnMantRequerimiento" onClick="mantAvisoRequerimiento('0')"
+                            data-transition="none" data-icon="action" data-iconpos="left"
+                            data-inline="true">Requerimiento</button>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagListaAvisos') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagAviSelUbiTec" data-theme="b">
+        <div data-role="header" class="header">
+            <h1 id="titSelReqmat">Lista Ubicaciones Técnicas</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid">
+                        <div class="ui-block"><input type="text" id="txtBusAviUbiTec" data-theme="d" data-mini="true"
+                                placeholder="Busca Ubicacion" />
+                        </div>
+                    </div>
+                    <input type="hidden" id="hidAviUbiTecOpc" data-mini="true" />
+                    <br>
+                    <div class="table-scroll">
+                        <fieldset>
+                            <table id="tblAviUbiTecnica" data-role="table" data-mode="columntoggle:none"   
+                            data-column-btn-theme="e"
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Código</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblUbiTecBody">
+                                    <tr>
+                                        <td colspan=2 style="text-align:rigth">No hay registros ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="retornaPapOpc() " data-transition="none" data-icon="back"
+                            data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagMantRequerimiento" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titEditarReq">Requerimiento Aviso:</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:10px">
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <div class="ui-grid-a" id="divSupGenOM">                        
+                        <div class="ui-block-a">
+                        </div>
+                        <div class="ui-block-b">
+                            <div style="float:right;">
+                            <button id="btnSuptGenOM" 
+                            data-icon="check" data-role="button" data-inline="true"
+                                data-mini="true" data-theme="b" onClick="generarOM()">Generar OM</button>
+                            </div>
+                        </div>
+                    </div>
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">Requerimiento</legend>
+                        <div class="ui-grid-a">
+                            <div class="ui-block"> <label>Descripcion</label>
+                                <input type="hidden" id="hidCodReq">
+                                <input type="hidden" id="txtReqEstado">
+                                <input type="text" id="txtReqDescripcion" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+                        <!-- <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Estado</label>
+                                <input type="text" id="txtReqEstado" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+                        -->
+                    </fieldset>
+                </li>
+            </ul>
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <fieldset>
+                            <legend id="legAproSuper" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
+                                Operaciones</legend>
+                            <table id="tblReqOperacion" data-role="table" data-mode="columntoggle:none"                          
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Pos</th>
+                                        <th>Operación</th>
+                                        <th>Clave Ctrl</th>
+                                        <th>Opc</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=4 style="text-align:rigth">No hay ningun registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnRegOpeMant" onClick="registrarRegOpeMat()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
+                    </li>
+                    <li><button id="btnNueOpe" onClick="nuevaReqOperacion()" data-transition="none" data-icon="plus"
+                            data-iconpos="left" data-inline="true">Agregar Operación</button>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagEditarAviso') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagAprobSuperTecni" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titaprobarAviso">Aprobaciones Aviso:</h1>
+            <input type="hidden" id="codAvisoAprobar">
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:10px">
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <fieldset>
+                            <legend id="legAproTec" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
+                                Técnico:</legend>
+                            <table id="tabAproTecnico" data-role="table" data-mode="reflow" data-column-btn-theme="d"
+                                data-column-popup-theme="b" data-column-btn-text="Cols"
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Nro. Operación</th>
+                                        <th>Clave Modulo</th>
+                                        <th>Operación</th>
+                                        <th>Clave de Ctrl</th>
+                                        <th>Revisión</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabAvisoBody">
+                                    <tr>
+                                        <td colspan=5 style="text-align:rigth">No hay ningun registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <fieldset>
+                            <legend id="legAproSuper" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
+                                Supervisor:</legend>
+
+                            <table id="tabAproSuper" data-role="table" data-mode="reflow" data-column-btn-theme="d"
+                                data-column-popup-theme="b" data-column-btn-text="Cols"
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Nro. Operación</th>
+                                        <th>Clave Modelo</th>
+                                        <th>Operación</th>
+                                        <th>Clave de Ctrl</th>
+                                        <th>Revisión</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabAvisoBody">
+                                    <tr>
+                                        <td colspan=5 style="text-align:rigth">No hay ningun registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="registrarAprobacion()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</a>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagListaAvisos') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!--  pagEditarReqOperacion -->
+    <div data-role="page" id="pagEditarReqOperacion" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titEditarReqOpe">Operación</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold" id="reqOpeLen">Operación
+                        </legend>
+                        <input type="hidden" id="hidReqCodOpe">
+                        <input type="hidden" id="hidReqCodigo" />
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Puesto Trabajo:</label>
+                                <input type="text" id="txtReqPuesto" data-mini="true" data-theme="d"
+                                    autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Clave Modelo:</label>
+                                <input type="text" id="txtReqClaveModelo" onchange="buscarModeloReq('COD')"
+                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
+                                <a href="#"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="verPagClaModelo()"></a>
+                            </div>
+                        </div>
+                        <div class="ui-grid">
+                            <div class="ui-block"><label>Descripción Modelo:</label>
+                                <input type="text" id="txtReqDesModelo" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="ui-grid">
+                            <div class="ui-block"> <label>Clave de Ctrl:</label>
+                                <select id="cbxReqOpeCtrl" data-native-menu="false" data-mini="true" data-theme="d"
+                                    class="filterable-select" onchange="nuevoReqOpeExterno()">
+                                    <option value="PMO1" selected>PMO1</option>
+                                    <option value="PMO3">PMO3</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ui-grid">
+                            <div class="ui-block"> <label>Operación:</label>
+                                <input type="text" id="txtReqOperacion" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Nro Personas:</label>
+                                <input type="number" id="txtReqNroPer" data-mini="true" placeholder="" value=""
+                                    data-theme="d" />
+                            </div>
+                            <div class="ui-block-b"> <label>Horas:</label> <input type="number" id="txtReqHoras"
+                                    data-mini="true" placeholder="" value="" data-theme="d" />
+                            </div>
+                        </div>
+                    </fieldset>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnRegOpe" onClick="grabarReqOperacion()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagMantRequerimiento') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!--  pagReqSelClaMod  -->
+    <div data-role="page" id="pagReqSelClaMod" data-theme="b">
+        <div data-role="header" class="header">
+
+            <h1 id="titSelReqmat">Lista Modelos</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a"><input type="text" id="txtbusClaMod" data-mini="true"
+                                placeholder="Descripción Modelo" data-theme="d" autocomplete="off" />
+                        </div>
+                        <div class="ui-block-b">
+                            <a href="#"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                onClick="buscarModeloReq('DES')"></a>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="table-scroll">
+                        <fieldset>
+                            <table id="tblReqOpeClaMod" data-role="table"  data-mode="columntoggle:none"                               
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Código</th>
+                                        <th>Modelo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=3 style="text-align:rigth">No hay registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagEditarReqOperacion') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!--  pagEditarReqOperacion -->
+    <div data-role="page" id="pagEditarReqOpeExterno" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titEditarReqExterno">Requerimiento Aviso:</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:10px">
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold" id="reqOpeExtLen">
+                            Operación</legend>
+                        <div class="ui-grid">
+                            <input type="hidden" id="hiddExtCodOperacion">
+                            <input type="hidden" id="hiddExtOpeCtrl">
+                            <input type="hidden" id="hiddExtClaMod">
+                            <input type="hidden" id="hiddExtDesClaMod">
+                            <input type="hidden" id="hidReqExtCodigo">
+
+                            <div class="ui-block"> <label>Descripción</label>
+                                <input type="text" id="txtReqExtOperacion" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div><!-- /grid-b -->
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Código Servicio:</label>
+
+                                <input type="text" id="txtReqCodSer" onchange="buscarServicioReq('COD')"
+                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+
+                            </div>
+                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
+                                <a href="#"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="$.mobile.changePage('#pagReqOpeSelServ')"></a>
+                            </div>
+                        </div>
+                        <div class="ui-grid">
+                            <div class="ui-grid"><label>Servicio</label>
+                                <input type="text" id="txtReqServicio" data-mini="true" data-theme="d" readonly />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Cantidad:</label>
+                                <input type="number" id="txtReqCantidad" onchange="onchOpeExtCanPre()" data-mini="true"
+                                    placeholder="" value="" data-theme="d" />
+                            </div>
+                            <div class="ui-block-b"> <label>UM:</label>
+                                <input type="text" id="txtReqUniMedida" data-mini="true" placeholder="" value=""
+                                    data-theme="d" readonly />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Precio Ref:</label>
+                                <input type="number" id="txtReqPrecioRef" onchange="onchOpeExtCanPre()" data-mini="true"
+                                    placeholder="" value="" data-theme="d" />
+                            </div>
+                            <div class="ui-block-b"> <label>Total:</label> <input type="number" id="txtReqTotal"
+                                    data-mini="true" placeholder="" value="" data-theme="d" readonly disabled />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Solicitante:</label>
+                                <input type="text" id="txtReqSolicitante" onchange="buscaSolicitante('COD')"
+                                    data-mini="true" placeholder="" value="Ch-Ingenieri" data-theme="d"
+                                    autocomplete="off" readonly/>
+                            </div>
+                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
+                                <!--   <a href="#"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="$.mobile.changePage('#pagReqOpeSelSol')"></a>
+                                    -->
+                                <button type="button" id="btnBusSolicitante"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="$.mobile.changePage('#pagReqOpeSelSol')"></button>
+                            </div>
+                        </div>
+                        <!-- <div class="ui-grid">
+                            <div class="ui-block"><label>Descripción:</label>
+                                <input type="text" id="txtReqDesSolicitante" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" disabled="" />
+                            </div>
+                        </div> -->
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Artículo:</label> <input type="text" id="txtReqGrArticulo"
+                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"> <label>Compras:</label> <input type="text" id="txtReqGrCompras"
+                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+                    </fieldset>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnRegOpeExt" onClick="grabarReqOpeExterno()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagMantRequerimiento') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagReqOpeSelServ" data-theme="b">
+        <div data-role="header" class="header">
+
+            <h1 id="titSelReqmat">Lista de Servicios</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a"><input type="text" id="txtbusServicio" data-mini="true"
+                                placeholder="Servicio" data-theme="d" autocomplete="off" />
+                        </div>
+                        <div class="ui-block-b">
+                            <a href="#"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                onClick="buscarServicioReq('DET')"></a>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="table-scroll">
+                        <fieldset>
+                            <table id="tblReqOpeSelServ" data-role="table" data-mode="columntoggle:none"
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Código</th>
+                                        <th>Servicio</th>
+                                        <th>UM</th>
+                                        <th>Articulo</th>
+                                        <th>Compras</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=5 style="text-align:rigth">No hay registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagEditarReqOpeExterno') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagReqOpeSelSol" data-theme="b">
+        <div data-role="header" class="header">
+            <h1 id="titSelReqmat">Lista de Solicitantes</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a"><input type="text" id="txtbusSolicitante" data-mini="true"
+                                placeholder="Solicitante" data-theme="d" autocomplete="off" />
+                        </div>
+                        <div class="ui-block-b">
+                            <a href="#"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                onClick="buscaSolicitante('DET')"></a>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="table-scroll">
+                        <fieldset>
+                            <table id="tblOpeSol" data-role="table" data-mode="columntoggle:none"
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Código</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=3 style="text-align:rigth">No hay registros ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagEditarReqOpeExterno') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagReqMaterial" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titEditarReqMante">Materiales Operación:</h1>
+            <input type="hidden" id="hidReqMatCodReq">
+            <input type="hidden" id="hidReqMatCodOperacion">
+            <input type="hidden" id="hidReqMatCodigo">
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <fieldset>
+                            <legend id="legAproSuper" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
+                                Materiales</legend>
+                            <table id="tblReqMaterial" data-role="table" data-mode="columntoggle:none"                          
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Código</th>
+                                        <th>Material</th>
+                                        <th>UM</th>
+                                        <th>Cantidad</th>
+                                        <th>Lote</th>
+                                        <th>Centro</th>
+                                        <th>Almacén</th>
+                                        <th>Opc</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=8 style="text-align:rigth">No hay ningun registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnNueMat" onClick="mantReqMaterial('0')" data-transition="none"
+                            data-icon="plus" data-iconpos="left" data-inline="true">Agregar Material</button>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagMantRequerimiento') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--  pagReqSelMaterial  -->
+    <div data-role="page" id="pagReqSelMaterial" data-theme="b">
+        <div data-role="header" class="header">
+            <h1 id="titSelReqmat">Lista Materiales</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid-a">
+                        <input type="hidden" id="hidDatCentro">
+                        <div class="ui-block-a"><input type="text" id="txtbusMaterial" data-mini="true"
+                                placeholder="Descripción material" data-theme="d" autocomplete="off" />
+                        </div>
+                        <div class="ui-block-b">
+                            <a href="#"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                onClick="buscaMaterial('DET')"></a>
+                        </div>
+                    </div>
+                    <br>
+
+                    <div class="table-scroll">
+                        <fieldset>
+                            <table id="tblReqSelMat" data-role="table"  data-mode="columntoggle:none"
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Código</th>
+                                        <th>Material</th>
+                                        <th>UM</th>
+                                        <th>Lote</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=4 style="text-align:rigth">No hay registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagEditarReqMaterial') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!--  pagEditarReqMaterial  -->
+    <div data-role="page" id="pagEditarReqMaterial" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titEditarReqMat">Operación:</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:10px">
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold" id="postMat">Material
+                        </legend>
+                        <input type="hidden" id="hidMatCodOperacion">
+                        <input type="hidden" id="hidMatCodReq">
+                        <input type="hidden" id="txtCodMat" data-mini="true" placeholder="" value="" data-theme="d"
+                            readonly />
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Centro:</label>
+                                <input type="text" id="txtMatCentro" data-mini="true" onchange="verificarMaterial(this)"
+                                    placeholder="" value="" data-theme="d" autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"><label>Almacén:</label>
+                                <input type="text" id="txtMatAlmacen" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Código Material:</label>
+                                <input type="text" id="txtMatCodigo" onchange="buscaMaterial('COD')" data-mini="true"
+                                    placeholder="" value="" data-theme="d" autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
+                                <!-- <a href="#"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="$.mobile.changePage('#pagReqSelMaterial')">
+                                </a> -->
+                                <a href="#"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="verPagMateriales()">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ui-grid">
+                            <div class="ui-grid"><label>Material</label>
+                                <input type="text" id="txtMatDesc" data-mini="true" data-theme="d" readonly />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Cantidad:</label>
+                                <input type="number" id="txtMatCantidad" data-mini="true" data-theme="d" />
+                            </div>
+                            <div class="ui-grid-b"><label>U M:</label>
+                                <input type="text" id="txtMatUniMed" data-mini="true" data-theme="d" />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Lote:</label>
+                                <input type="text" id="txtMatLote" data-mini="true" placeholder="" value=""
+                                    data-theme="d" readonly/>
+                            </div>
+                        </div>
+                    </fieldset>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnRegOpeMat" onClick="addReqMaterial()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagReqMaterial') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- pagConfMattUsu -->
+    <div data-role="page" id="pagConfMattUsu" data-theme="b">
+        <div data-role="header" class="header">
+            <h1 id="titMttoUsu">Mtto de Usuarios</h1>
+            <input type="hidden" id="confMattUsuPerfil">
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <fieldset>
+                            <legend id="legMttoPerf" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
+                            </legend>
+                            <table id="tblMttoUsu" data-role="table" data-mode="columntoggle:none"
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Nro</th>
+                                        <th>Usuario</th>
+                                        <th>Perfil</th>
+                                        <th>Asignar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=4 style="text-align:rigth">No hay registro ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagHome') " data-transition="none"
+                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- pagMattUsuAsignacion -->
+    <div data-role="page" id="pagMattUsuAsignacion" data-theme="b">
+        <div data-role="header" class="header">
+            <h1 id="titMttoUsu">Mtto Usuario Asignaciones</h1>
+            <input type="hidden" id="hidAsigCusuario" value="">
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div data-role="tabs" id="tabs">
+                        <fieldset>
+                            <legend id="legMttoUsuAsig" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
+                            </legend>
+                            <input type="hidden" id="hidCusuAsig">
+                            <div class="ui-grid-a">
+                                <div class="ui-block-a"><label>Centro:</label>
+                                    <input type="text" id="txtMttoUsuCen" data-mini="true" placeholder="" value=""
+                                        data-theme="d" autocomplete="off" />
+                                </div>
+                                <div class="ui-block-b"><label>Puesto:</label>
+                                    <input type="text" id="txtMttoUsuPue" data-mini="true" placeholder="" value=""
+                                        data-theme="d" autocomplete="off" />
+                                </div>
+                            </div>
+                            <div data-role="navbar">
+                                <ul>
+                                    <li><a href="#MttoUsuGP" id="navbarMttoUsuGP" data-ajax="false"
+                                            class="ui-btn-active ui-state-persist" onclick="opcTabMttoUsu('GP')">Grupo
+                                            Planificación</a>
+                                    </li>
+                                    <li><a href="#MttoUsuUT" id="navbarMttoUsuUT" data-ajax="false"
+                                            onclick="opcTabMttoUsu('UT')">Ubicación Técnica</a></li>
+                                    <li><a href="#MttoUsuTipo" id="navbarttoUsuTipo" data-ajax="false"
+                                            onclick="opcTabMttoUsu('TIPO')">Tipo</a></li>
+
+                                </ul>
+                            </div>
+                            <div id="MttoUsuGP" class="ui-body-d ui-content">
+                                <input type="hidden" id="hidNavbarMttoUsu" />
+                                <div class="table-scroll">
+                                    <table id="tblMttoUsuGP" data-role="table"  data-mode="columntoggle:none"                                       
+                                        class="ui-body-d ui-shadow movie-list ui-responsive">
+                                        <thead>
+                                            <tr class="ui-bar-d">
+                                                <th>Grupo de Planificación</th>
+                                                <th>Opc</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan=2 style="text-align:rigth">No hay registro ...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="MttoUsuUT" class="ui-body-d ui-content">
+                                <div class="table-scroll">
+                                    <table id="tblMttoUsuUT" data-role="table" data-mode="columntoggle:none"                                       
+                                        class="ui-body-d ui-shadow movie-list ui-responsive">
+                                        <thead>
+                                            <tr class="ui-bar-d">
+                                                <th>Ubicacón Técnica</th>
+                                                <th>Opc</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan=2 style="text-align:rigth">No hay registro ...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="MttoUsuTipo" class="ui-body-d ui-content">
+                                <div class="table-scroll">
+                                    <table id="tblMttoUsuTip" data-role="table" data-mode="columntoggle:none"                                   
+                                        class="ui-body-d ui-shadow movie-list ui-responsive">
+                                        <thead>
+                                            <tr class="ui-bar-d">
+                                                <th>Tipo</th>
+                                                <th>Opc</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan=2 style="text-align:rigth">No hay registro ...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btnMttoUsuAsig" onClick="regMttoUsuAsig()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
+                    </li>
+                    <li><button type="button" id="btnAddMttoUsuAsig" onClick="addMttoUsuAsig()" data-transition="none"
+                            data-icon="plus" data-iconpos="check" data-inline="true">Agregar</button>
+                    </li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagConfMattUsu') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- -->
+
+    <div data-role="page" id="pagConfigurar" data-theme="b">
+        <div data-role="header" class="header">
+            <h1>Configuración</h1>
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+        </div>
+        <!-- contenido -->
+        <div data-role="content" data-theme="b">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid">
+                        <div class="ui-block"> <label>URL:</label>
+                            <input type="text" id="txtConURL" data-mini="true" placeholder="" value="" data-theme="d"
+                                readonly />
+                        </div>
+                    </div><!-- /grid-b -->
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a"><label>Centro:</label>
+                            <input type="text" id="txtConCentro" data-mini="true" placeholder="" value="" data-theme="d"
+                                readonly />
+                        </div>
+                        <div class="ui-block-b"><label>Puesto:</label>
+                            <input type="text" id="txtConPuesto" data-mini="true" placeholder="" value="" data-theme="d"
+                                readonly />
+                        </div>
+
+                    </div><!-- /grid-b -->
+                    <div class="ui-grid-a">
+                        <div class="ui-block-b"> <label>Grupo:</label>
+                            <select id="cbxConGrupo" data-native-menu="false" data-mini="true" data-theme="d"
+                                class="filterable-select"></select>
+                        </div>
+                        <div class="ui-block-b"><label>Ubicación:</label>
+                            <select id="cbxConUbicacion" data-native-menu="false" data-mini="true" data-theme="d"
+                                class="filterable-select"> </select>
+                        </div>
+                    </div><!-- /grid-b -->
+                </li>
+            </ul>
+
+        </div><!-- fin contenido -->
+        <!-- footer data-position="fixed"-->
+        <div data-role="footer" data-theme="b"
+            style="bottom:0;right:0;top:auto !important ;position:absolute !important;width: 100% !important;">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagHome') " data-transition="none"
+                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div><!-- /navbar -->
+        </div><!-- /footer -->
+    </div>
+
+    <!-- /page -->
+
+    <!--  #popup   popup           -->
+    <div data-role="page" id="popup">
+        <div data-role="header" data-theme="b">
+            <h1 id="cabPopUp">Aviso</h1>
+        </div><!-- /header -->
+
+        <div data-role="content" data-theme="d">
+            <h2 id=titPopUp>Popup</h2>
+            <p id="msgPopUp"> Datos a mostar</p>
+            <fieldset class="ui-grid-a">
+                <div id="divAceptar" class="ui-block-a"><button type="submit" data-icon="check" data-theme="b"
+                        id="btnAceptar">Aceptar</button></div>
+                <div class="ui-block-b" id="divCerrar"><button type="submit" onClick="$.mobile.changePage('#pagHome')"
+                        data-icon="back" data-theme="e">Cancelar</button></div>
+            </fieldset>
+
+        </div><!-- /content -->
+    </div>
+    <!-- /page popup -->
+
+
+</body>
+
+</html>

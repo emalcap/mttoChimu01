@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<widget xmlns = "http://www.w3.org/ns/widgets"
+    xmlns:gap = "http://phonegap.com/ns/1.0"
+    id        = "com.Chimu.AppMttoChimu"
+    version   = "1.0.0">
+
+<name>APP CHIMU</name>
+
+<feature name="Storage">
+    <param name="android-package" value="org.apache.cordova.Storage" />
+</feature>
+<feature name="Geolocation">
+    <param name="android-package" value="org.apache.cordova.geolocation.GeoBroker" />
+</feature>
+
+<description>
+Aplicación para Mtto CHIMU.
+</description>
+
+<author href="http://www.sotinsa.com.pe" email="vpalomino@sotinsa.com.pe">
+Victor Palomino  Correa
+</author>
+
+</widget>
