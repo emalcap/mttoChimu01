@@ -401,9 +401,6 @@ function onchaBusUbiTec(txtData) {
 
 function verPaginaUbicaciones(opc) {
 
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
-
 	$("#hidAviUbiTecOpc").val(opc)
 	$.mobile.changePage('#pagAviSelUbiTec')
 }
@@ -466,15 +463,17 @@ function obtenerDatosEquipo(ubicacion) {
 				$("select#cbxAvisoEq").change()
 				//$('#cbxAvisoEq').attr("disabled", true);
 
-				  equipoUbi = data.find(x => x.Equipo == data[0].Equipo);
-				 // console.log(equipoUbi)
+				equipoUbi = data.find(x => x.Equipo == data[0].Equipo);
+				// console.log(equipoUbi)
 				if (equipoUbi != null && codAvi == "0") {
 
 					$("#txtAvisoPuesto").val(equipoUbi.Puesto)
 					$("#cbxAvisoGr").val(equipoUbi.Grupo)
-					$("#txtAvisoCentroPL").val(equipoUbi.CentroPL)					
-					//$("#hidAvisoCentroSU").val(dataEqui[0].Centro)				
-					 $("select#cbxAvisoGr").change()
+					$("#txtAvisoCentroPL").val(equipoUbi.CentroPL)
+					//$("#hidAvisoCentroSU").val(dataEqui[0].Centro)
+					//$("#hidAvisoAlmacen").val(dataEqui[0].Centro)
+					//console.log(equipoUbi)
+					$("select#cbxAvisoGr").change()
 				}
 			}
 			else {
@@ -522,41 +521,41 @@ function enviarAutorizacion() {
 
 function grabarAviso() {
 
-	var codAviso = $("#txtAvisoCodigo").val();
-	var titulo = $("#txtAvisoTitulo").val();
-	var tipo = $("#cbxAvisoTip").val();
+	var CodAviso = $("#txtAvisoCodigo").val();
+	var Titulo = $("#txtAvisoTitulo").val();
+	var Tipo = $("#cbxAvisoTip").val();
 	//var Descripcion = CodAviso == "0" ? $("#txtAvisoDesc").val() : $("#txtAvisoDescIni").val() + " " + $("#txtAvisoDesc").val();
-	var descripcion = $("#txtAvisoDesc").val();
-	var ubicacion = $("#txtAviCodUbi").val();
-	var equipo = codAviso == '0' ? $("#cbxAvisoEq").val() : $("#txtAvisoEq").val();
-	var puesto = $("#txtAvisoPuesto").val();
-	var grupo = $("#cbxAvisoGr").val();
-	var centro = $("#txtAvisoCentroPL").val()
-	var fInicio = $("#dateAvisoIni").val();
-	var fDeseado = $("#dateAvisoDesea").val();
-	var hora = $("#timeAvisoHora").val();
-	var parada = $("#cbxAvisoParada").val()
+	var Descripcion = $("#txtAvisoDesc").val();
+	var Ubicacion = $("#txtAviCodUbi").val();
+	var Equipo = CodAviso == '0' ? $("#cbxAvisoEq").val() : $("#txtAvisoEq").val();
+	var Puesto = $("#txtAvisoPuesto").val();
+	var Grupo = $("#cbxAvisoGr").val();
+	var Centro = $("#txtAvisoCentroPL").val()
+	var FInicio = $("#dateAvisoIni").val();
+	var FDeseado = $("#dateAvisoDesea").val();
+	var Hora = $("#timeAvisoHora").val();
+	var Parada = $("#cbxAvisoParada").val()
 
-	if (titulo == "") {
+	if (Titulo == "") {
 		navigator.notification.alert("Ingrese Titulo")
 		return;
 	}
-	
-	if (tipo == "") {
+
+	if (Tipo == "") {
 		navigator.notification.alert("Ingrese Tipo")
 		return;
 	}
 
-	if (ubicacion.trim() == "") {
+	if (Ubicacion.trim() == "") {
 		navigator.notification.alert("Ingrese código de ubicación")
 		return;
 	}
-	if (puesto.trim() == "") {
+	if (Puesto.trim() == "") {
 		navigator.notification.alert("Ingrese puesto")
 		return;
 	}
 
-	if (grupo == "" || Grupo == null) {
+	if (Grupo == "" || Grupo == null) {
 		navigator.notification.alert("Seleccione grupo")
 		return;
 	}
@@ -566,38 +565,38 @@ function grabarAviso() {
 		return;
 	}
 
-	if (fInicio.length == 0) {
+	if (FInicio.length == 0) {
 		navigator.notification.alert("Ingrese fecha incio")
 		return;
 	}
 
-	if (fDeseado.length == 0) {
+	if (FDeseado.length == 0) {
 		navigator.notification.alert("Ingrese fecha deseada")
 		return;
 	}
 
-	if (hora.length == 0) {
+	if (Hora.length == 0) {
 		navigator.notification.alert("Ingrese hora")
 		return
 	}
 
 	var AvisoBE = {
-		CodAviso: codAviso,
-		Titulo: titulo,
-		Tipo: tipo,
-		Descripcion: descripcion,
-		Ubicacion: ubicacion,
-		Equipo: equipo,
-		Puesto: puesto,
-		Grupo: grupo,
-		Centro: centro,
-		FInicio: fInicio,
-		FDeseado: fDeseado,
-		Hora: hora,
-		Parada: parada,
+		CodAviso: CodAviso,
+		Titulo: Titulo,
+		Tipo: Tipo,
+		Descripcion: Descripcion,
+		Ubicacion: Ubicacion,
+		Equipo: Equipo,
+		Puesto: Puesto,
+		Grupo: Grupo,
+		Centro: Centro,
+		FInicio: FInicio,
+		FDeseado: FDeseado,
+		Hora: Hora,
+		Parada: Parada,
 		Usuario: getLocalStorage("susuario"),
 		Estado: $("#hidAviEstado").val()
-	 }
+	}
 
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/MantAviso",
@@ -615,7 +614,7 @@ function grabarAviso() {
 			if (data.Status != "OK")
 				navigator.notification.alert(data.Mensaje)
 			else if (data.Status == "OK") {
-				if (codAviso == 0) {
+				if (CodAviso == 0) {
 					$("#titEditarAviso").html('Editar Aviso:' + data.Codigo)
 					$("#txtAvisoCodigo").val(data.Codigo);
 					$('#btnMantRequerimiento').show();
@@ -653,8 +652,12 @@ function mantAprobacionTecSup(codAviso) {
 	$("#titaprobarAviso").html("Aprobaciones Aviso: " + codAviso)
 	$("#codAvisoAprobar").val(codAviso)
 
+	var IPorHOST = getIPorHOSTApi();
+	var url = IPorHOST + "MttoChimuAPI/ListaAvisoOperacion";
+
+
 	$.ajax({
-		url: getIPorHOSTApi()+"MttoChimuAPI/ListaAvisoOperacion",
+		url: url,
 		crossDomain: true,
 		cache: false,
 		type: "Get",
@@ -726,8 +729,7 @@ function mantAvisoRequerimiento(codAviso) {
 		codAviso = $("#txtAvisoCodigo").val()
 		var html = '<tr><td colspan=5 style="text-align:rigth" >No hay registros...</td></tr>'
 		$("#tblReqOperacion").find('tbody').empty();
-		//---Temporarl ----Oculta todos los toggle
-		//$(".ui-table-columntoggle-btn").hide()
+	
 		$("#tblReqOperacion").find('tbody').append(html);
 		$("#tblReqOperacion").trigger('create')
 
@@ -765,7 +767,7 @@ function obtenerReqOperacion(codAviso) {
 		success: function (data) {
 			datosAvisoRequerimiento(data)
 			$("#cargando").hide();
-			return true
+		
 		},
 		error: function (jqXHR, exception) {
 			$("#cargando").hide();
@@ -773,7 +775,7 @@ function obtenerReqOperacion(codAviso) {
 			return false
 		}
 	});
-	return true
+
 
 }
 
@@ -791,6 +793,7 @@ function datosAvisoRequerimiento(data) {
 	if (dataLogConUsu.Perfil == "MTTO_SUPERV" && codReg != "0" && $("#hidAviEstado").val() == "2")
 		$("#divSupGenOM").show()
 
+	console.log(data.lstOpe)
 	if (data.lstOpe.length > 0) {
 		listarDataReqOperacion(data.lstOpe)
 	}
@@ -855,16 +858,57 @@ function registrarRegOpeMat() {
 }
 
 function generarOM() {
+ var contar = 0;
+	$("#tblReqOperacion tbody tr").each(function (index, row) {
+		contar++
+	})
 
-	var codavi = $("#txtAvisoCodigo").val()
-	var estAvi = $("#hidAviEstado").val()
+	if ( contar== 0){
+		navigator.notification.alert("El requeriminto no tiene operaciones")
+		return 
+	}
 
-	navigator.notification.confirm("Seguro de Generar OM?", function (buttonIndex) {
+	navigator.notification.confirm("Seguro de Generar OM ?", function (buttonIndex) {
 		//onConfirm(buttonIndex, errormsg);
-		//if (buttonIndex == 1) grabarAviso()
-
-		return
+		if (buttonIndex == 1) grabarGenerarOM()
 	},)
+
+}
+
+function grabarGenerarOM() {
+	
+	var codAvi = $("#txtAvisoCodigo").val()
+	var estAvi = $("#hidAviEstado").val()
+	
+	var dataAviso = lstAvisos.find(x => x.CodAviso == codAvi);
+
+	var avisoBE = {
+		CodAviso: dataAviso.CodAviso,
+		Centro: dataAviso.Centro,
+		Titulo: dataAviso.Titulo,
+		Equipo: dataAviso.Equipo,
+		FInicio: dataAviso.FInicio,
+		Grupo: dataAviso.Grupo,
+	}
+	
+	$.ajax({
+		url: getIPorHOSTApi() + "MttoChimuAPI/GenerarOM",
+		type: "post",
+		timeout: 60000,
+		data: avisoBE,
+		content: "application/json",
+		beforeSend: function () {
+			$("#cargando").show();
+		},
+		success: function (data) {
+			console.log(data)
+			$("#cargando").hide();
+		},
+		error: function (jqXHR, exception) {
+			$("#cargando").hide();
+			navigator.notification.alert("Error, No se Genero OM")
+		}
+	});
 
 }
 
@@ -1106,8 +1150,7 @@ function buscarModeloReq(tipo) {
 
 }
 function verPagClaModelo() {
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
+
 	$.mobile.changePage('#pagReqSelClaMod')
 
 }
@@ -1126,9 +1169,6 @@ function listarModeloReq(data) {
 	}
 
 	$("#tblReqOpeClaMod").find('tbody').empty();
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
-
 	$("#tblReqOpeClaMod").find('tbody').append(html);
 	$("#tblReqOpeClaMod").trigger('create')
 	$("#tblReqOpeClaMod").table("refresh");
@@ -1205,9 +1245,7 @@ function listarServicioOpe(data) {
 		html = html + '<tr><td colspan=5 style="text-align:rigth" >No hay registros...</td></tr>'
 	}
 
-	$("#tblReqOpeSelServ").find('tbody').empty();
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
+	$("#tblReqOpeSelServ").find('tbody').empty();	
 	$("#tblReqOpeSelServ").find('tbody').append(html);
 	$("#tblReqOpeSelServ").trigger('create')
 	$("#tblReqOpeSelServ").table("refresh");
@@ -1275,9 +1313,6 @@ function listaOpeSolicitante(data) {
 	}
 
 	$("#tblOpeSol").find('tbody').empty();
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
-
 	$("#tblOpeSol").find('tbody').append(html);
 	$("#tblOpeSol").trigger('create')
 	$("#tblOpeSol").table("refresh");
@@ -1801,9 +1836,6 @@ function listarDataReqOperacion(data) {
 		html = html + '<tr><td colspan=4 style="text-align:rigth" >No hay registro...</td></tr>'
 	}
 	$("#tblReqOperacion").find('tbody').empty();
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
-
 	$("#tblReqOperacion").find('tbody').append(html);
 	$("#tblReqOperacion").trigger('create')
 	$("#tblReqOperacion").table("refresh");
@@ -1919,9 +1951,6 @@ function verPagMateriales() {
 		var html = '<tr><td colspan=4 style="text-align:rigth" >No hay registros...</td></tr>'
 
 		$("#tblReqSelMat").find('tbody').empty();
-		//---Temporarl ----Oculta todos los toggle
-		//$(".ui-table-columntoggle-btn").hide()
-
 		$("#tblReqSelMat").find('tbody').append(html);
 		$("#tblReqSelMat").trigger('create')
 		$("#tblReqSelMat").table("refresh");
@@ -2227,9 +2256,6 @@ function listarDataReqMateriales(data) {
 	}
 
 	$("#tblReqMaterial").find('tbody').empty();
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
-
 	$("#tblReqMaterial").find('tbody').append(html);
 	$("#tblReqMaterial").trigger('create')
 	$("#tblReqMaterial").table("refresh");

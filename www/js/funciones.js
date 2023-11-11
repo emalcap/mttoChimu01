@@ -1,8 +1,8 @@
 ﻿
 function getIPorHOSTApi() {
 
-	return "http://webdes.san-fernando.com.pe:8100/"
-	//return "http://localhost:50241/"
+	//return "http://webdes.san-fernando.com.pe:8100/"
+	return "http://localhost:50241/"
 	//return "http://webgsf.san-fernando.com.pe/"//
 
 	var url = getLocalStorage("url");
