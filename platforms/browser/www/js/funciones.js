@@ -289,26 +289,32 @@ $(document).ready(function () {
 
 	$("#tblAviUbiTecnica").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
-		var codigo = $('#tblAviUbiTecnica tr').eq(row).find('td:first').text().substring(0);
+		var codigo = $('#tblAviUbiTecnica tr').eq(row).find('td:first').text()//.substring(0);
 		var origen = $("#hidAviUbiTecOpc").val()
-
+    
 		if (origen == "L") {
 			$("#txtAviCodUbiTecLis").val(codigo)
+			$("#txtAviAviso").val("")
 			$.mobile.changePage('#pagListaAvisos')
 		} else if (origen == "E") {
 			$("#txtAviCodUbi").val(codigo)
 			$.mobile.changePage('#pagEditarAviso')
 			obtenerDatosEquipo(codigo)
+		} else if (origen == "OM") {
+			$("#txtUbiTecLisOM").val(codigo)
+			$("#txtReqOM").val("")
+			$.mobile.changePage('#pagGestionOM')
 		}
+
 	});
 
 	$("#tblReqOpeSelServ").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
-		var codigo = $('#tblReqOpeSelServ tr').eq(row).find('td:first').text().substring(6);
-		var descripcion = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(1).text().substring(8)
-		var um = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(2).text().substring(2)
-		var articulo = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(3).text().substring(10)
-		var compras = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(4).text().substring(7)
+		var codigo = $('#tblReqOpeSelServ tr').eq(row).find('td:first').text()//.substring(6);
+		var descripcion = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(1).text()//.substring(8)
+		var um = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(2).text()//.substring(2)
+		var articulo = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(3).text()//.substring(10)
+		var compras = $('#tblReqOpeSelServ tr').eq(row).find("td").eq(4).text()//.substring(7)
 
 		$("#txtReqCodSer").val(codigo)
 		$("#txtReqServicio").val(descripcion)
@@ -320,8 +326,8 @@ $(document).ready(function () {
 
 	$("#tblReqOpeClaMod").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
-		var codigo = $('#tblReqOpeClaMod tr').eq(row).find('td:first').text().substring(6);
-		var descripcion = $('#tblReqOpeClaMod tr').eq(row).find("td").eq(1).text().substring(6)
+		var codigo = $('#tblReqOpeClaMod tr').eq(row).find('td:first').text()//.substring(6);
+		var descripcion = $('#tblReqOpeClaMod tr').eq(row).find("td").eq(1).text()//.substring(6)
 		$("#txtReqClaveModelo").val(codigo)
 		$("#txtReqDesModelo").val(descripcion)
 		$("#hiddExtClaMod").val(codigo)
@@ -330,8 +336,8 @@ $(document).ready(function () {
 
 	$("#tblOpeSol").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
-		var codigo = $('#tblOpeSol tr').eq(row).find('td:first').text().substring(6);
-		var descripcion = $('#tblOpeSol tr').eq(row).find("td").eq(1).text().substring(6)
+		var codigo = $('#tblOpeSol tr').eq(row).find('td:first').text()//.substring(6);
+		var descripcion = $('#tblOpeSol tr').eq(row).find("td").eq(1).text()//.substring(6)
 		$("#txtReqSolicitante").val(codigo)
 		//$("#txtReqDesSolicitante").val(descripcion)		
 		$.mobile.changePage('#pagEditarReqOpeExterno')
@@ -339,10 +345,10 @@ $(document).ready(function () {
 
 	$("#tblReqSelMat").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
-		var codigo = $('#tblReqSelMat tr').eq(row).find('td:first').text().substring(6);
-		var descripcion = $('#tblReqSelMat tr').eq(row).find("td").eq(1).text().substring(8)
-		var um = $('#tblReqSelMat tr').eq(row).find("td").eq(2).text().substring(2)
-		var lote = $('#tblReqSelMat tr').eq(row).find("td").eq(3).text().substring(4)
+		var codigo = $('#tblReqSelMat tr').eq(row).find('td:first').text()//.substring(6);
+		var descripcion = $('#tblReqSelMat tr').eq(row).find("td").eq(1).text()//.substring(8)
+		var um = $('#tblReqSelMat tr').eq(row).find("td").eq(2).text()//.substring(2)
+		var lote = $('#tblReqSelMat tr').eq(row).find("td").eq(3).text()//.substring(4)
 
 		//console.log(codigo,descripcion,um,lote)
 		$("#txtMatCodigo").val(codigo)

@@ -425,12 +425,15 @@ function retornaAviUbiTec(checkparametro) {
 
 }
 
-function retornaPapOpc() {
+function retornaPapOpc() {	
 	var opc = $("#hidAviUbiTecOpc").val()
+	
 	if (opc == "E")
 		$.mobile.changePage('#pagEditarAviso')
 	else if (opc == "L")
 		$.mobile.changePage('#pagListaAvisos')
+	else if (opc == "OM")
+	  $.mobile.changePage('#pagGestionOM')
 }
 
 var equipoUbi = [];
@@ -860,22 +863,44 @@ function registrarRegOpeMat() {
 function generarOM() {
  var contar = 0;
 	$("#tblReqOperacion tbody tr").each(function (index, row) {
-		contar++
+		var codOpe = $(row).find("td").find("input[name='reqOpeCodOpe']").val()
+		if (codOpe> 0) contar++;
 	})
-
 	if ( contar== 0){
 		navigator.notification.alert("El requeriminto no tiene operaciones")
 		return 
 	}
 
-	navigator.notification.confirm("Seguro de Generar OM ?", function (buttonIndex) {
-		//onConfirm(buttonIndex, errormsg);
-		if (buttonIndex == 1) grabarGenerarOM()
-	},)
+    
+	$("#txtClaOM").val("")
+	$("#txtClaACOM").val("")
+	$("#txtPriOM").val("")
+
+	$.mobile.changePage('#pagPopIGeneraOM') 
+
+
 
 }
 
 function grabarGenerarOM() {
+
+	var claOM = $("#txtClaOM").val()
+	var claACOM = $("#txtClaACOM").val()
+	var prio  = $("#txtPriOM").val()
+
+	if ( claOM==""){
+		navigator.notification.alert("Ingrese Clase")
+		return 
+	}
+	if (claACOM ==""){
+		navigator.notification.alert("Ingrese Clase AC")
+		return 
+	}
+	if (prio ==""){
+		navigator.notification.alert("Ingrese Prioridad")
+		return 
+	}
+
 	
 	var codAvi = $("#txtAvisoCodigo").val()
 	var estAvi = $("#hidAviEstado").val()
@@ -889,6 +914,9 @@ function grabarGenerarOM() {
 		Equipo: dataAviso.Equipo,
 		FInicio: dataAviso.FInicio,
 		Grupo: dataAviso.Grupo,
+		Clase:claOM,
+		ClaseAC:claACOM,
+		Prioridad:prio,
 	}
 	
 	$.ajax({
@@ -900,9 +928,14 @@ function grabarGenerarOM() {
 		beforeSend: function () {
 			$("#cargando").show();
 		},
-		success: function (data) {
-			console.log(data)
-			$("#cargando").hide();
+		success: function (data) {	
+			$("#cargando").hide();		
+		if (data.Status != "OK")
+			navigator.notification.alert(data.Mensaje)
+	    else if  (data.Status == "OK"){			
+			navigator.notification.alert("Se ha creado OM:"+data.Codigo+ "\r\n" + data.Mensaje)
+		}
+			
 		},
 		error: function (jqXHR, exception) {
 			$("#cargando").hide();
@@ -1039,6 +1072,7 @@ function nuevoReqOpeExterno() {
 	var codAviso = $("#txtAvisoCodigo").val()
 	var modelo = $("#txtReqClaveModelo").val()
 	var dModelo = $("#txtReqDesModelo").val()
+	var puesto = $("#txtReqPuesto").val()
 
 
 	$("#hiddExtOpeCtrl").val("PM03")
@@ -1049,7 +1083,7 @@ function nuevoReqOpeExterno() {
 		Codigo: "",
 		Modelo: modelo,
 		DModelo: dModelo,
-		Puesto: "",
+		Puesto: puesto,
 		Operacion: "",
 		Ctrl: "PMO3",
 		Personas: "",
@@ -1075,6 +1109,7 @@ function nuevoReqOpeExterno() {
 	$("#txtReqClaveModelo").val("")
 	$("#txtReqDesModelo").val("")
 	$("#txtReqPuesto").val("")
+	$("#hidReqExtPuesto").val("")
 	$("#txtReqOperacion").val("")
 	$("#cbxReqOpeCtrl").val("")
 	$("select#cbxReqOpeCtrl").change()
@@ -1086,6 +1121,7 @@ function nuevoReqOpeExterno() {
 	$("#hidReqExtCodigo").val(reqBE.CodReq)
 	$("#hiddExtClaMod").val(reqBE.Modelo)
 	$("#hiddExtDesClaMod").val(reqBE.DModelo)
+	$("#hidReqExtPuesto").val(reqBE.Puesto)
 	$("#txtReqCodSer").val(reqBE.CodServicio)
 	$("#txtReqServicio").val(reqBE.DServicio)
 	$("#txtReqCantidad").val(reqBE.Cantidad)
@@ -1345,6 +1381,7 @@ function editarRepOpeExt(codOper) {
 		$("#hiddExtOpeCtrl").val(data[0].Ctrl)
 		$("#hiddExtClaMod").val(data[0].Modelo)
 		$("#hiddExtDesClaMod").val(data[0].DModelo)
+		$("#hidReqExtPuesto").val(data[0].Puesto)
 
 		$("#txtReqExtOperacion").val(data[0].Operacion)
 		$("#txtReqCodSer").val(data[0].CodServicio)
@@ -1417,6 +1454,11 @@ function grabarReqOperacion() {
 		Compras: "",
 		ESTADO: "",
 		Cusuario: getLocalStorage("cusuario")
+	}
+
+	if (reqBE.Puesto.trim() == "") {
+		navigator.notification.alert("Ingrese Puestro Trabajo")
+		return
 	}
 
 	if (reqBE.Modelo.trim() == "") {
@@ -1504,7 +1546,7 @@ function grabarReqOpeExterno() {
 		CodAviso: codAviso,
 		Modelo: $("#hiddExtClaMod").val(),
 		DModelo: $("#hiddExtDesClaMod").val(),
-		Puesto: "",
+		Puesto: $("#hidReqExtPuesto").val(),
 		Operacion: $("#txtReqExtOperacion").val(),
 		Ctrl: "PMO3",
 		Personas: "",

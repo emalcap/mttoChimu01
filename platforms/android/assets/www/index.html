@@ -29,6 +29,8 @@
     <script src="js/bdLocal.js" type="text/javascript"></script>
     <script src="js/funcAvisos.js" type="text/javascript"></script>
     <script src="js/funcMttoUsu.js" type="text/javascript"></script>
+    <script src="js/funcOM.js" type="text/javascript"></script>
+
     <script type="text/javascript" src="cordova.js"></script>
 
     <script type="text/javascript" src="js/bluetooth.js"></script>
@@ -191,7 +193,7 @@
                     <label for="name">Gestión de Avisos de Mtto </label>
                 </fieldset>
                 <fieldset class="ui-block-b" id="modOrdenMant">
-                    <a href="#" onclick="$.mobile.changePage('#pagGestionOrdenMant');" class="btn" data-role="button"
+                    <a href="#" onclick="gestionOM()" class="btn" data-role="button"
                         data-theme="c"><img src="img/business.png" width="60px" height="60px" alt="" title="" /> </a>
                     <label for="name">Orden de Mantenimiento</label>
                 </fieldset>
@@ -269,7 +271,7 @@
                     <div class="ui-grid-a">
                         <div class="ui-block-a">
                             <input type="text" id="txtAviCodUbiTecLis" data-mini="true"
-                                onchange="onchaBusUbiTecList(this)" placeholder="Código UT" data-theme="d"
+                                onchange="onchaBusUbiTecList(this)" data-theme="d"
                                 placeholder="Código UT" autocomplete="off" />
                         </div>
                         <div class="ui-block-b">
@@ -351,18 +353,15 @@
         <div data-role="content" data-theme="b" style="padding-bottom:10px">
             <ul data-role="listview" data-inset="true" data-theme="d">
                 <li data-theme="d">
-                    <div class="ui-grid-b">
+                    <div class="ui-grid-a">                        
                         <div class="ui-block-a">
-                            <h3 style="margin-bottom: 11px;color: rgb(0, 0, 8); font-weight: bold" id="txtAviDesEstado">
-                                Estado:</h3>
                         </div>
                         <div class="ui-block-b">
-                        </div>
-                        <div class="ui-block-c">
-                            <div id="divSupAut">
+                            <div id="divSupAut" style="float:right;" >
                                 <button id="btnSuptAut" data-icon="check" data-role="button" data-inline="true"
                                     data-mini="true" data-theme="b" onClick="enviarAutorizacion()"> Autorizar</button>
                             </div>
+                            <p style="float:right;"  id="txtAviDesEstado"></p>
                         </div>
                     </div>
 
@@ -547,14 +546,15 @@
         <div data-role="content" data-theme="b" style="padding-bottom:10px">
             <ul data-role="listview" data-inset="true" data-theme="d">
                 <li data-theme="d">
-                    <div class="ui-grid-b" id="divSupGenOM">
+                    <div class="ui-grid-a" id="divSupGenOM">                        
                         <div class="ui-block-a">
                         </div>
                         <div class="ui-block-b">
-                        </div>
-                        <div class="ui-block-c">
-                            <button id="btnSuptGenOM" data-icon="check" data-role="button" data-inline="true"
+                            <div style="float:right;">
+                            <button id="btnSuptGenOM" 
+                            data-icon="check" data-role="button" data-inline="true"
                                 data-mini="true" data-theme="b" onClick="generarOM()">Generar OM</button>
+                            </div>
                         </div>
                     </div>
                     <fieldset>
@@ -859,6 +859,7 @@
                             <input type="hidden" id="hiddExtClaMod">
                             <input type="hidden" id="hiddExtDesClaMod">
                             <input type="hidden" id="hidReqExtCodigo">
+                            <input type="hidden" id="hidReqExtPuesto">
 
                             <div class="ui-block"> <label>Descripción</label>
                                 <input type="text" id="txtReqExtOperacion" data-mini="true" placeholder="" value=""
@@ -1083,7 +1084,7 @@
                                         <th>Cantidad</th>
                                         <th>Lote</th>
                                         <th>Centro</th>
-                                        <th>Almacen</th>
+                                        <th>Almacén</th>
                                         <th>Opc</th>
                                     </tr>
                                 </thead>
@@ -1190,7 +1191,7 @@
                                 <input type="text" id="txtMatCentro" data-mini="true" onchange="verificarMaterial(this)"
                                     placeholder="" value="" data-theme="d" autocomplete="off" />
                             </div>
-                            <div class="ui-block-b"><label>Almacen:</label>
+                            <div class="ui-block-b"><label>Almacén:</label>
                                 <input type="text" id="txtMatAlmacen" data-mini="true" placeholder="" value=""
                                     data-theme="d" autocomplete="off" />
                             </div>
@@ -1249,6 +1250,145 @@
             </div>
         </div>
     </div>
+
+    <!--- Gestion OM-->
+    <div data-role="page" id="pagGestionOM" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titTransporte">Listado de OM</h1>
+        </div>
+        <div data-role="content" data-theme="b" style="padding-bottom:50px">
+
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="b">
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a">
+                            <select id="cbxGrupoOM" data-native-menu="false" data-mini="true" data-theme="d"
+                                class="filterable-select"></select>
+                        </div>
+                    </div>
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a">
+                            <input type="text" id="txtUbiTecLisOM" data-mini="true"
+                                placeholder="Código UT" data-theme="d"
+                                autocomplete="off" />
+                        </div>
+                        <div class="ui-block-b">
+                            <button type="button" id="btnBusAviso"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-d ui-mini"
+                                onClick="verPaginaUbicaciones('OM')"></button>
+                        </div>
+                    </div>                   
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a"><input type="text" id="txtReqOM" data-mini="true" placeholder="OM"
+                                data-theme="d" autocomplete="off" />
+                        </div>
+                        <div class="ui-block-b">
+                            <button type="button" id="btnBusAviso"
+                                class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                onClick="listarGestionOM()"></button>
+                        </div>
+                    </div>
+                    <div class="ui-block"> <input type="text" id="txtFilter" data-mini="true" placeholder="Busca...."
+                            data-theme="d" autocomplete="off" />
+                    </div>
+                </li>
+            </ul>
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <table id="tabLstOM" data-role="table"
+                            class="ui-body-d ui-shadow movie-list ui-responsive">
+                            <thead>
+                                <tr class="ui-bar-d">
+                                    <th>OM</th>
+                                    <th>Título</th>
+                                    <th>CLA</th>
+                                    <th>ACT</th>
+                                    <th>UT</th>                               
+                                    <th>Equipo</th>                              
+                                    <th>Opción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabAvisoBody">
+                                <tr>
+                                    <td colspan=7 style="text-align:rigth">No hay registros ...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer data-position="fixed"-->
+        <div data-role="footer" data-theme="b"
+            style="bottom:0;right:0;top:auto !important ;position:absolute !important;width: 100% !important;">
+            <div data-role="navbar">
+                <ul>
+                    <li><button type="button" id="btn" onClick="" data-transition="none"
+                            data-icon="plus" data-iconpos="plus" data-inline="true">Nuevo</button></li>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagHome') " data-transition="none"
+                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+
+                </ul>
+            </div><!-- /navbar -->
+        </div><!-- /footer -->
+    </div>
+      
+    <div data-role="page" id="pagListaOpeOM" data-theme="b">
+        <div data-role="header" class="header">
+            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
+                data-shadow="false" data-iconshadow="false">Menu</a>
+            <h1 id="titEditarReq">OM:</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:10px">           
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="table-scroll">
+                        <fieldset>
+                            <legend id="" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
+                                Operaciones</legend>
+                            <table id="tbOpeOM" data-role="table"                         
+                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>OP</th>
+                                        <th>Descipción</th>
+                                        <th>Clave Ctrl</th>
+                                        <th>Puesto</th>
+                                        <th>Personas</th>
+                                        <th>Total</th>                                        
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan=6 style="text-align:rigth">No hay ningun registros ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>                   
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagGestionOM') "
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!--- Gestion OM   -->
+
 
     <!-- pagConfMattUsu -->
     <div data-role="page" id="pagConfMattUsu" data-theme="b">
@@ -1411,6 +1551,58 @@
     </div>
     <!-- -->
 
+
+  <!--  #popup   popup           -->
+  <div  data-role="page" id="pagPopIGeneraOM">
+    <div data-role="header" data-theme="b">
+        <h1 id="titDatOM">Datos OM</h1>
+    </div><!-- /header -->
+
+    <div data-role="content" data-theme="d">    
+        
+         <ul data-role="listview" data-inset="true" data-theme="d">
+            <li data-theme="d">	     
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><label>Clase</label>
+                        <input type="text" id="txtClaOM" data-mini="true"
+                            placeholder="" data-theme="d"
+                            autocomplete="off" />
+                    </div>
+                    <div class="ui-block-b"><label>Clase AC</label>
+                        <input type="text" id="txtClaACOM" data-mini="true"
+                        placeholder="" data-theme="d"
+                        autocomplete="off" />
+                    </div> 
+                </div> 
+                <div class="ui-grid-a">
+                    <div class="ui-block-a"><label>Prioridad</label>
+                        <input type="number" id="txtPriOM" data-mini="true"
+                            placeholder="" data-theme="d"
+                            autocomplete="off" />
+                    </div>
+                    
+                </div> 
+            </li>           
+        </ul>
+         <div data-role="collapsible-set" data-content-theme="c" id="msgImprimeHead" style="display:none">
+            <div data-role="collapsible" data-theme="e" data-content-theme="d" id="msgImprime">
+                <h3>Alertas</h3>
+                <p id = "pMsgImprime"></p>
+            </div>
+        </div>
+
+        <fieldset class="ui-grid-a">
+                <div  class="ui-block-a" ><a href="#" data-ajax=false onClick="grabarGenerarOM()" class="btn" data-role="button" id="btnImprimir" data-theme="b" >Aceptar</a></div>                   
+                <div class="ui-block-b"><button type="submit" id="" data-icon="back" data-theme="e"
+                    onClick="$.mobile.changePage('#pagMantRequerimiento') ">Salir</button></div>
+        </fieldset>
+        
+    </div><!-- /content -->
+</div>
+<!-- /page popup -->
+
+
+
     <div data-role="page" id="pagConfigurar" data-theme="b">
         <div data-role="header" class="header">
             <h1>Configuración</h1>
@@ -1467,25 +1659,7 @@
 
     <!-- /page -->
 
-    <!--  #popup   popup           -->
-    <div data-role="page" id="popup">
-        <div data-role="header" data-theme="b">
-            <h1 id="cabPopUp">Aviso</h1>
-        </div><!-- /header -->
 
-        <div data-role="content" data-theme="d">
-            <h2 id=titPopUp>Popup</h2>
-            <p id="msgPopUp"> Datos a mostar</p>
-            <fieldset class="ui-grid-a">
-                <div id="divAceptar" class="ui-block-a"><button type="submit" data-icon="check" data-theme="b"
-                        id="btnAceptar">Aceptar</button></div>
-                <div class="ui-block-b" id="divCerrar"><button type="submit" onClick="$.mobile.changePage('#pagHome')"
-                        data-icon="back" data-theme="e">Cancelar</button></div>
-            </fieldset>
-
-        </div><!-- /content -->
-    </div>
-    <!-- /page popup -->
 
 
 </body>

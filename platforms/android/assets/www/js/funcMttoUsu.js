@@ -82,9 +82,7 @@ function listaMttoUsuario(data) {
     }
 
     $("#tblMttoUsu").find('tbody').empty();
-    //---Temporarl ----Oculta todos los toggle
-	$(".ui-table-columntoggle-btn").hide()
-    
+      
     $("#tblMttoUsu").find('tbody').append(html);
     $("#tblMttoUsu").trigger('create')
     $("#tblMttoUsu").table("refresh");

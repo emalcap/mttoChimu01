@@ -1,8 +1,8 @@
 ﻿
 function getIPorHOSTApi() {
 
-	//return "http://webdes.san-fernando.com.pe:8100/"
-	return "http://localhost:50241/"
+	return "http://webdes.san-fernando.com.pe:8100/"
+	//return "http://localhost:50241/"
 	//return "http://webgsf.san-fernando.com.pe/"//
 
 	var url = getLocalStorage("url");
@@ -291,15 +291,21 @@ $(document).ready(function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
 		var codigo = $('#tblAviUbiTecnica tr').eq(row).find('td:first').text()//.substring(0);
 		var origen = $("#hidAviUbiTecOpc").val()
-
+    
 		if (origen == "L") {
 			$("#txtAviCodUbiTecLis").val(codigo)
+			$("#txtAviAviso").val("")
 			$.mobile.changePage('#pagListaAvisos')
 		} else if (origen == "E") {
 			$("#txtAviCodUbi").val(codigo)
 			$.mobile.changePage('#pagEditarAviso')
 			obtenerDatosEquipo(codigo)
+		} else if (origen == "OM") {
+			$("#txtUbiTecLisOM").val(codigo)
+			$("#txtReqOM").val("")
+			$.mobile.changePage('#pagGestionOM')
 		}
+
 	});
 
 	$("#tblReqOpeSelServ").delegate("td", "click", function () {
