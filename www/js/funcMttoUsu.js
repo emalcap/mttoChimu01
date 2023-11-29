@@ -2,12 +2,12 @@ var lstMttoUsuario = [];
 function gestionMttoUsuario() {
     var perUsu = lstPerUsu.find(x => x.SMODULO == "GestUsuario")
     //IAGREGAR,  ICONSULTAR,    IEJECUTAR,IELIMINAR,IMODIFICAR
-     
+
     var sperfil = ""
     var url = getIPorHOSTApi() + "MttoChimuAPI/ListaUsuarioPerfil";
 
     $.ajax({
-        url: url, 
+        url: url,
         crossDomain: true,
         cache: false,
         type: "Get",
@@ -82,7 +82,7 @@ function listaMttoUsuario(data) {
     }
 
     $("#tblMttoUsu").find('tbody').empty();
-      
+
     $("#tblMttoUsu").find('tbody').append(html);
     $("#tblMttoUsu").trigger('create')
     $("#tblMttoUsu").table("refresh");
@@ -94,9 +94,11 @@ function AsignarOpc(cusuPer) {
     var cusuario = usuPerfil[0]
     var dataUsu = lstMttoUsuario.filter(x => x.CUSUARIO == cusuario)
     var usuario = dataUsu[0].DUSUARIO
-    //$("#legMttoUsuAsig").html(usuario + " - " + usuPerfil[1])
+    $("#legMttoUsuAsig").html("Usaurio: " + usuario)
+
     $("#hidAsigCusuario").val(cusuario)
 
+    $("#txtMttoUsuCen").val("")
     // obtenere los datos del usuario selecionado MTTOUSU    
     var url = getIPorHOSTApi() + "MttoChimuAPI/Configuracion"
     $.ajax({
@@ -111,10 +113,13 @@ function AsignarOpc(cusuPer) {
             $("#cargando").show();
         },
         success: function (data) {
+            if (data.Centro != "")
 
-            $("#hidCusuAsig").val(data.CUSUARIO)
+                $("#hidCusuAsig").val(data.CUSUARIO)
             $("#txtMttoUsuCen").val(data.Centro)
-            $("#txtMttoUsuPue").val(data.Puesto)
+            llenarCbxPtoTabajoUsu(data.Centro, data.Puesto)
+            //$("#cbxMttoUsuPue").val(data.Puesto)
+            $("select#cbxMttoUsuPue").change()
 
             $.mobile.changePage('#pagMattUsuAsignacion')
             //
@@ -153,6 +158,56 @@ function opcTabMttoUsu(opc) {
     $("#btnAddMttoUsuAsig").html("Agregar " + opc)
 }
 
+function onchaObtPtoTrabajo(obj) {
+
+    if (obj.value == "") return
+
+    var centro = lstCentros.find(x => x.SITEM == obj.value)
+    if (centro == null) {
+        $("#txtMttoUsuCen").val("")
+        $("#cbxMttoUsuPue").val("")
+        $("select#cbxMttoUsuPue").change()
+        navigator.notification.alert("Error, el centro Ingresado no existe")
+    }
+
+    llenarCbxPtoTabajoUsu(obj.value, "")
+}
+
+function llenarCbxPtoTabajoUsu(centro, puesto) {
+    $("#cbxMttoUsuPue").empty()
+    
+    $.ajax({
+        url: getIPorHOSTApi() + "MttoChimuAPI/ListaPuestos?centro="+centro,
+        type: "get",
+        timeout: 60000,        
+        content: "application/json",
+        beforeSend: function () {
+            $("#cargando").show()
+        },
+        success: function (data) {
+            $("#cargando").hide();
+            $("#cbxMttoUsuPue").append('<option value="">Seleccione Pto. Trabajo</option>')
+            var ptoTabajo = data.filter(x => x.STABLA == "PUESTO")
+            $(ptoTabajo).each(function (index, row) {
+                if (puesto == row.SITEM)
+                    $("#cbxMttoUsuPue").append('<option selected value="' + row.SITEM + '">' + row.SITEM + '</option>')
+                else
+                    $("#cbxMttoUsuPue").append('<option value="' + row.SITEM + '">' + row.SITEM + '</option>')
+            });
+            $("select#cbxMttoUsuPue").change()
+        },
+        error: function (jqXHR, exception) {
+            $("#cargando").hide();
+            navigator.notification.alert("Problemas al obtener Tablas Pto Trabajo")
+        }
+    });
+
+
+
+}
+
+
+
 function addMttoUsuAsig() {
     var tabSelect = $("#hidNavbarMttoUsu").val()
     //var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
@@ -161,16 +216,26 @@ function addMttoUsuAsig() {
     var html = "";
     var addRow = true;
     if (tabSelect == "GP") {
+
+        var lstGrupos = lstMaestros.filter(x => x.STABLA == "GRUPO")
+        var opts = ""
+        $(lstGrupos).each(function (index, row) {
+            opts = opts == "" ? '<option value="' + row.SITEM + '">' + row.SITEM + '</option>' : opts + '<option value="' + row.SITEM + '">' + row.SITEM + '</option>'
+        });
+        var cbxGrupo = '<select name = "cbxGrupUsu" data-native-menu="false" data-mini="true" data-theme="d"  class="filterable-select">' +
+            '<option value="">Seleccionar Grupo</option>' + opts +
+            '</select> '
+
         addRow = true
         $("#tblMttoUsuGP tbody tr").each(function (index, row) {
-            var dValor = $(row).find("td").find("input[name='txtCodGP']").val()
+            var dValor = $(row).find("td").find("select[name='cbxGrupUsu']").val()
             if (dValor.trim() == "")
                 addRow = false
         })
         if (addRow) {
             var eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliMttoGP(this)"></a>'
             html = html + '<tr> ' +
-                '<td><input type ="text" name="txtCodGP" value="" data-mini="true"  autocomplete="off"></td>' +
+                '<td>' + cbxGrupo + '</td>' +
                 '<td>' + eliminar + '</td>'
             '</tr>';
 
@@ -200,16 +265,27 @@ function addMttoUsuAsig() {
         }
     }
     else if (tabSelect == "TIPO") {
+
+
+        var lstTipos = lstMaestros.filter(x => x.STABLA == "TIPO")
+        var opts = ""
+        $(lstTipos).each(function (index, row) {
+            opts = opts == "" ? '<option value="' + row.SITEM + '">' + row.SITEM + '</option>' : opts + '<option value="' + row.SITEM + '">' + row.SITEM + '</option>'
+        });
+        var cbxTiposUsu = '<select name = "cbxTipoUsu" data-native-menu="false" data-mini="true" data-theme="d"  class="filterable-select">' +
+            '<option value="">Seleccionar Tipos</option>' + opts +
+            '</select> '
+
         addRow = true
         $("#tblMttoUsuTip tbody tr").each(function (index, row) {
-            var dValor = $(row).find("td").find("input[name='txtCodTipo']").val()
+            var dValor = $(row).find("td").find("select[name='cbxTipoUsu']").val()
             if (dValor.trim() == "")
                 addRow = false
         });
         if (addRow) {
             var eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliMttoTipo(this)"></a>'
             html = html + '<tr> ' +
-                '<td><input type ="text" name="txtCodTipo"  value="" data-mini="true"  autocomplete="off"></td>' +
+                '<td>' + cbxTiposUsu + '</td>' +
                 '<td>' + eliminar + '</td>' +
                 '</tr>';
 
@@ -233,11 +309,30 @@ function listarMttoUsuGP(dataGP) {
     var data = arrayGP;
     var html = ""
     var existe = false;
+
+    var lstGrupos = lstMaestros.filter(x => x.STABLA == "GRUPO")
+
     $(data).each(function (i, dValor) {
         existe = true;
+
+        var opts = ""
+        $(lstGrupos).each(function (index, row) {
+            var selected = row.SITEM == dValor ? "selected" : "";
+            if (opts == "")
+                opts = '<option value="' + row.SITEM + '"' + selected + '>' + row.SITEM + '</option>';
+            else
+                opts = opts + '<option value="' + row.SITEM + '"' + selected + '>' + row.SITEM + '</option>';
+
+        });
+        var cbxGrupo = '<select name = "cbxGrupUsu"  data-native-menu="false" data-mini="true" data-theme="d" disabled>' +
+            '<option value="">Seleccionar</option>' + opts +
+            '</select> '
+
+        //$("select#cbxGrupUsu").change()
+
         var eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliMttoGP(this)"></a>'
         html = html + '<tr> ' +
-            '<td><input type ="text" name="txtCodGP" value="' + dValor + '" data-mini="true"  autocomplete="off"></td>' +
+            '<td>' + cbxGrupo + '</td>' +
             '<td>' + eliminar + '</td>'
         '</tr>';
     })
@@ -289,11 +384,26 @@ function listarMttoUsuTipo(dataTipos) {
 
     var html = ""
     var existe = false;
+    var lstTipos = lstMaestros.filter(x => x.STABLA == "TIPO")
     $(data).each(function (i, dValor) {
         existe = true;
+        var opts = ""
+        $(lstTipos).each(function (index, row) {
+            var selected = row.SITEM == dValor ? "selected" : "";
+            if (opts == "")
+                opts = '<option value="' + row.SITEM + '"' + selected + '>' + row.SITEM + '</option>';
+            else
+                opts = opts + '<option value="' + row.SITEM + '"' + selected + '>' + row.SITEM + '</option>';
+
+        });
+        var cbxTipos = '<select name = "cbxTipoUsu"  data-native-menu="false" data-mini="true" data-theme="d" disabled>' +
+            '<option value="">Seleccionar</option>' + opts +
+            '</select> '
+
+
         var eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliMttoTipo(this)"></a>'
         html = html + '<tr> ' +
-            '<td><input type ="text" name="txtCodTipo" value="' + dValor + '" data-mini="true"  autocomplete="off"></td>' +
+            '<td>' + cbxTipos + '</td>' +
             '<td>' + eliminar + '</td>' +
             '</tr>';
     })
@@ -311,12 +421,12 @@ function regMttoUsuAsig() {
 
     var cusuario = $("#hidAsigCusuario").val()
     var centro = $("#txtMttoUsuCen").val()
-    var puesto = $("#txtMttoUsuPue").val()
+    var puesto = $("#cbxMttoUsuPue").val()
 
     var addGrupos = "", addUbiTec = "", addTipos = "";
 
     $("#tblMttoUsuGP tbody tr").each(function (index, row) {
-        var dValor = $(row).find("td").find("input[name='txtCodGP']").val()
+        var dValor = $(row).find("td").find("select[name='cbxGrupUsu']").val()
 
         if (dValor.trim() != "") {
             if (addGrupos == "")
@@ -339,7 +449,7 @@ function regMttoUsuAsig() {
     });
     $("#tblMttoUsuTip tbody tr").each(function (index, row) {
 
-        var dValor = $(row).find("td").find("input[name='txtCodTipo']").val()
+        var dValor = $(row).find("td").find("select[name='cbxTipoUsu']").val()
 
         if (dValor.trim() != "") {
             if (addTipos == "")

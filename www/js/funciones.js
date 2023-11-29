@@ -28,6 +28,15 @@ function limpiarCadena(str) {
 	return str;
 }
 
+function mostrarContrasena() {
+	var tipo = document.getElementById("txtPassword");
+	if (tipo.type == "password") {
+		tipo.type = "text";
+	} else {
+		tipo.type = "password";
+	}
+}
+
 
 function validarLogin() {
 
@@ -82,6 +91,7 @@ function ingresarSistema(usuario, clave) {
 				$.mobile.changePage("#pagHome", { transition: "slideup" });
 
 				configuracionUsuario()
+				limpiarTablas()
 
 			} else {
 				var mensaje = "Usuario Incorrecto y/o usuario no existe!!";
@@ -219,6 +229,19 @@ function configuracionUsuario() {
 			}
 			$("select#cbxConGrupo").change()
 
+			$("#cbxConTipo").empty()
+			$("#cbxConTipo").append('<option value="">Ver Tipos Asignados</option>')
+
+			if (data.Tipos != null) {
+				var datos = data.Tipos.split("|");
+				for (i = 0; i < datos.length; i++) {
+					$("#cbxConTipo").append('<option value="' + datos[i] + '">' + datos[i] + '</option>')
+				}
+				if (datos.length == 1)
+					$("#cbxConTipo").val(datos[0])
+			}
+			$("select#cbxConTipo").change()
+
 			$("#cbxConUbicacion").empty()
 			$("#cbxConUbicacion").append('<option value="">Ver Ubicaciones</option>')
 			if (data.Grupos != null) {
@@ -243,22 +266,33 @@ function configuracionUsuario() {
 
 }
 
-var lstMaestros = []
+var lstMaestros = [],lstCentros= []
 function registraMaestros(avisoBE) {
 
-
+	//console.log(avisoBE)
+	var avisobe = {
+		CUSUARIO: avisoBE.CUSUARIO,
+		//Grupos :avisoBE.Grupos
+		Perfil: avisoBE.Perfil,
+		Tipos: avisoBE.Tipos,
+		Ubicaciones: avisoBE.Ubicaciones,
+		Centro: avisoBE.Centro == "" ? "3904" : avisoBE.Centro
+	}
+	 
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/ListaMaestros",
 		type: "post",
 		timeout: 60000,
-		data: avisoBE,
+		data: avisobe,
 		content: "application/json",
 		beforeSend: function () {
-			lstMaestros.length = 0
+			lstMaestros.length = 0;
+			lstCentros.length = 0;
 			$("#cargando").show()
 		},
 		success: function (data) {
 			listarUbicaciones(data)
+			ListarPtoCentro(data.filter(x => x.STABLA == "CENTRO"))
 			$("#cargando").hide();
 		},
 		error: function (jqXHR, exception) {
@@ -268,16 +302,17 @@ function registraMaestros(avisoBE) {
 	});
 }
 
-
 $(document).ready(function () {
 
-	$("#txtFilter").keyup(function () {
-		var rows = $("#tabAvisoBody").find("tr").hide();
+	$("#txtFilterOM").keyup(function () {
+		var rows = $("#tabOMBody").find("tr").hide();
 		var data = this.value.split(" ");
 		$.each(data, function (i, v) {
 			rows.filter(":contains('" + v + "')").show();
 		});
 	})
+
+
 
 	$("#txtBusAviUbiTec").keyup(function () {
 		var rows = $("#tblUbiTecBody").find("tr").hide();
@@ -287,26 +322,67 @@ $(document).ready(function () {
 		});
 	})
 
+	$("#txtBusEquipo").keyup(function () {
+		var rows = $("#tblbusEquiBody").find("tr").hide();
+		var data = this.value.split(" ");
+		$.each(data, function (i, v) {
+			rows.filter(":contains('" + v + "')").show();
+		});
+	})
+
+	$("#txtBusPtoCentro").keyup(function () {
+		var rows = $("#tblPtoCentroBody").find("tr").hide();
+		var data = this.value.split(" ");
+		$.each(data, function (i, v) {
+			rows.filter(":contains('" + v + "')").show();
+		});
+	})
+
+
 	$("#tblAviUbiTecnica").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
 		var codigo = $('#tblAviUbiTecnica tr').eq(row).find('td:first').text()//.substring(0);
 		var origen = $("#hidAviUbiTecOpc").val()
-    
+
+
 		if (origen == "L") {
+
+			irA("#pagListaAvisos")
 			$("#txtAviCodUbiTecLis").val(codigo)
 			$("#txtAviAviso").val("")
-			$.mobile.changePage('#pagListaAvisos')
+
+
+			var html = '<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
+			$("#ulAvisos").html(html)
+			$('#ulAvisos').listview('refresh');
+
+
 		} else if (origen == "E") {
 			$("#txtAviCodUbi").val(codigo)
+			$("#txtAvisoEqu").val("")
+			$("#cbxAvisoPuesto").val("")
+			$("select#cbxAvisoPuesto").change()
+			$("#txtAvisoCentroPT").val("")
+			$("#cbxAvisoGr").val("")
+			$("#txtAvisoCentroPL").val("")
+
 			$.mobile.changePage('#pagEditarAviso')
 			obtenerDatosEquipo(codigo)
+
 		} else if (origen == "OM") {
-			$("#txtUbiTecLisOM").val(codigo)
+			$("#txtUbiTecOM").val(codigo)
 			$("#txtReqOM").val("")
 			$.mobile.changePage('#pagGestionOM')
 		}
 
 	});
+
+	$("#tblAviEquipos").delegate("td", "click", function () {
+		row = $(this).parent().parent().children().index($(this).parent()) + 1;
+		var equipo = $('#tblAviEquipos tr').eq(row).find('td:first').text()
+		datosPorEquipoEditAviso(equipo)
+	})
+	
 
 	$("#tblReqOpeSelServ").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
@@ -328,10 +404,22 @@ $(document).ready(function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
 		var codigo = $('#tblReqOpeClaMod tr').eq(row).find('td:first').text()//.substring(6);
 		var descripcion = $('#tblReqOpeClaMod tr').eq(row).find("td").eq(1).text()//.substring(6)
-		$("#txtReqClaveModelo").val(codigo)
-		$("#txtReqDesModelo").val(descripcion)
-		$("#hiddExtClaMod").val(codigo)
-		$.mobile.changePage('#pagEditarReqOperacion')
+		var pagRetorno = $("#hidTipoRetModelo").val()
+		if (pagRetorno == "pro") {
+			$("#txtReqClaveModelo").val(codigo)
+			$("#txtReqDesModelo").val(descripcion)
+
+			$.mobile.changePage('#pagEditarReqOperacion')
+		}
+		else if (pagRetorno == "ext") {
+			$("#txtExtClaMod").val(codigo)
+			$("#txtExtDesClaMod").val(descripcion)
+			// para sugenrencia de busqueda
+			$("#txtbusClaMod").val(descripcion)
+			$.mobile.changePage('#pagEditarReqOpeExterno')
+		}
+
+
 	});
 
 	$("#tblOpeSol").delegate("td", "click", function () {
@@ -358,16 +446,40 @@ $(document).ready(function () {
 		$.mobile.changePage('#pagEditarReqMaterial')
 	});
 
+	$("#tblPtoCentro").delegate("td", "click", function () {
+		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
+		var codigo = $('#tblPtoCentro tr').eq(row).find('td:first').text()
+		var origen = $("#hidOpcPagPtoCentro").val()
+		if (origen == "USU") {
+			//$("#txtBusPtoCentro").val("")
+			$.mobile.changePage('#pagMattUsuAsignacion')
+			$("#txtMttoUsuCen").val(codigo)		
+			llenarCbxPtoTabajoUsu(codigo,"")
+		}
+		else if(origen == "OPE" ){
+			//$("#txtBusPtoCentro").val("")
+			$.mobile.changePage('#pagEditarReqOperacion')
+			$("#txtReqCentro").val(codigo)			
+			obtenerCbxPtoTra(codigo,"","OPE")
+		}
+		else if(origen == "AVI" ){
+			//$("#txtBusPtoCentro").val("")
+			$.mobile.changePage('#pagEditarAviso')
+			$("#txtAvisoCentroPT").val(codigo)			
+			obtenerCbxPtoTra(codigo,"","AVI")			
+		}
+				
+	})
+
 })
 
 function listarUbicaciones(datos) {
-
+ 
 	$("#cargando").show();
-
 	var html = ""
 	var existe = false;
-
 	var data = datos.filter(x => x.STABLA == "UBITEC")
+	
 	$(data).each(function (i, row) {
 		existe = true;
 		html = html + '<tr> ' +
@@ -385,16 +497,70 @@ function listarUbicaciones(datos) {
 	$("#tblAviUbiTecnica").find('tbody').append(html);
 	$("#tblAviUbiTecnica").trigger('create');
 	//$("#tblAviUbiTecnica").table("refresh"); 
-
+	//// llenar lstMaestros 
 	lstMaestros = datos
 	$("#cargando").hide();
 
-	//---Temporarl ----Oculta todos los toggle
-	//$(".ui-table-columntoggle-btn").hide()
+}
 
+function limpiarTablas(){
+ 	//tabla avisos 
+	 
+	 $("#ulAvisos").listview()
+	$("#ulAvisos").html(	
+		'<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
+	)
+	$('#ulAvisos').listview('refresh');
+	//tablas OM
+	$("#ulAvisosOM").html(	
+		'<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
+	)
+	$('#ulAvisosOM').listview('refresh');
 
 }
 
+function ListarPtoCentro(dataCentro) {
+
+
+	$("#cargando").show();
+
+	var html = ""
+	var existe = false;
+
+	$(dataCentro).each(function (i, row) {
+		existe = true;
+		html = html + '<tr> ' +
+			'<td>' + row.SITEM + '</td>' +
+			'<td>' + row.DITEM + '</td>' +
+			'</tr>';
+	})
+	if (!existe) {
+		html = html + '<tr><td colspan=2 style="text-align:rigth" >No hay registros...</td></tr>'
+	}
+
+	$("#tblPtoCentro").find('tbody').empty();
+	$("#tblPtoCentro").find('tbody').append(html);
+	$("#tblPtoCentro").trigger('create');
+	$("#cargando").hide();
+
+	// 
+	lstCentros= dataCentro;
+}
+
+function pagPtoCentro(opc) {
+	$("#hidOpcPagPtoCentro").val(opc)
+	$.mobile.changePage('#pagPtoCentro');
+
+}
+function  pagPtoCentroRetorno() {
+	var origen = $("#hidOpcPagPtoCentro").val()
+	if (origen == "USU")
+	$.mobile.changePage('#pagMattUsuAsignacion')
+	else if (origen == "OPE")
+	$.mobile.changePage('#pagEditarReqOperacion')
+	else if (origen == "AVI")
+	$.mobile.changePage('#pagEditarAviso')
+}
 
 
 $.fn.delayPasteKeyUp = function (fn, ms) {
@@ -406,7 +572,7 @@ $.fn.delayPasteKeyUp = function (fn, ms) {
 };
 
 
-function getRealContentHeight() {
+function getRealContentHeightBk() {
 
 	var header = $.mobile.activePage.find("div[data-role='header']:visible");
 	var footer = $.mobile.activePage.find("div[data-role='footer']:visible");
@@ -420,6 +586,33 @@ function getRealContentHeight() {
 	}
 	return content_height;
 }
+
+function getRealContentHeight() {
+
+	var screen = $.mobile.getScreenHeight();
+	var header = $(".ui-header").hasClass("ui-header-fixed") ? $(".ui-header").outerHeight() - 1 : $(".ui-header").outerHeight();
+	var footer = $(".ui-footer").hasClass("ui-footer-fixed") ? $(".ui-footer").outerHeight() - 1 : $(".ui-footer").outerHeight();
+
+	var contentCurrent = $(".ui-content").outerHeight() - $(".ui-content").height();
+	var content = screen - header - footer - contentCurrent;
+
+	return content
+
+}
+
+function irA(pag) {
+	
+	var altoExtra = 0
+	if (pag == "#pagListaAvisos") {
+		gestionAviso()
+	} else if (pag == "#pagHome") {
+		altoExtra = 58
+	}
+	$.mobile.changePage(pag)
+	var content = getRealContentHeight() - altoExtra
+	$(".ui-content").height(content);
+}
+
 
 //Cerrarsesion()
 function cerrarsesion() {

@@ -23,83 +23,102 @@ function gestionAviso() {
 		$("#btnNueMat").prop("disabled", false);
 		$("#btnRegOpeMat").prop("disabled", false);
 	}
-	if (perUsu.ICONSULTAR == "1" && perUsu.IAGREGAR != "1") {
+	if (perUsu.ICONSULTAR == "1" && (perUsu.IAGREGAR != "1" || perUsu.IAGREGAR == "1")) {
 		$("#btnEditAviso").prop("disabled", false);
 		$("#btnMantRequerimiento").prop("disabled", false);
+		$("#btnAvisoGrabar").prop("disabled", false);
 
-		$("#btnEditAviso").prop("disabled", true);
-		$("#btnAvisoGrabar").prop("disabled", true);
+
 		$("#btnRegOpe").prop("disabled", true);
 		$("#btnRegOpeExt").prop("disabled", true);
 		$("#btnNueMat").prop("disabled", true);
 		$("#btnRegOpeMat").prop("disabled", true);
 	}
 
-
-	$.mobile.changePage('#pagListaAvisos')
 	//LLena daos maestros
 	maestrosAviso()
-	$("#txtFilter").val("")
+
 
 }
 
 function maestrosAviso() {
 
-	$("#cbxAviGrupo,#cbxAviUbicacion,#cbxAvisoTip,#cbxAvisoUb,#cbxAvisoEq,#cbxAvisoGr").empty()
-
+	$("#cbxAviGrupo,#cbxAviUbicacion,#cbxAvisoTip,#cbxAvisoUb,#cbxAvisoGr").empty()
 
 	if ($("#cbxConGrupo").children('option').length > 2) {
 		$("#cbxAviGrupo").append('<option value="">Seleccione Grupo</option>')
 		$("#cbxAviGrupo").append('<option value="0">Todos</option>')
 	}
-	$("#cbxAvisoTip,#cbxAvisoEq").append('<option value="">Seleccione Item</option>')
 
-	var lstTipos = lstMaestros.filter(x => x.STABLA == "TIPO" && x.SITEM != "Z1");
-	//console.log(lstTipos)
-	$(lstTipos).each(function (i, row) {
-		$("#cbxAvisoTip").append('<option value="' + row.SITEM + '">' + row.SITEM + " " + row.DITEM + '</option>')
-	})
-	//Datos de la session
-	var opts = 0, val = ""
-	opts = 0, val = ""
-	$("#cbxConGrupo > option").each(function () {
-		if (this.value != "") {
-			opts++; val = this.value
-			$("#cbxAvisoGr,#cbxAviGrupo").append('<option value="' + this.value + '">' + this.text + '</option>')
+	$("#cbxAvisoTip").append('<option value="">Seleccione Item</option>')
+
+	if (dataLogConUsu.Tipos != null) {
+		var lstTipos = lstMaestros.filter(x => x.STABLA == "TIPO")
+		var datos = dataLogConUsu.Tipos.split("|");
+		for (i = 0; i < datos.length; i++) {
+			var find = lstTipos.find(x => x.SITEM == datos[i])
+			if (find != null)
+				$("#cbxAvisoTip").append('<option value="' + find.SITEM + '">' + find.SITEM + " " + find.DITEM + '</option>')
 		}
-	});
+		if (datos.length == 1)
+			$("#cbxAvisoTip").val(datos[0])
+	}
+	$("select#cbxAvisoTip").change()
 
-	if (opts == 1)
-		$("#cbxAvisoGr,#cbxAviGrupo").val(val)
-	else
-		$("#cbxAvisoGr,#cbxAviGrupo").val("0")
+	if (dataLogConUsu.Grupos != null) {
+		var datos = dataLogConUsu.Grupos.split("|");
+		for (i = 0; i < datos.length; i++) {
+			$("#cbxAviGrupo").append('<option value="' + datos[i] + '">' + datos[i] + '</option>')
+		}
+		if (datos.length == 1) {
+			$("#cbxAviGrupo").val(datos[0])
+		}
+	}
+	$("select#cbxAviGrupo").change()
+	// para editar aviso 
+	var lstGrupos = lstMaestros.filter(x => x.STABLA == "GRUPO")
+
+	$(lstGrupos).each(function (index, row) {
+		$("#cbxAvisoGr").append('<option value="' + row.SITEM + '">' + row.SITEM + '</option>')
+	});
+	var grupSelec = $("#cbxConGrupo").val()
+	var grupconf = dataLogConUsu.Grupos
+	if (grupSelec != "")
+		$("#cbxAvisoGr").val(grupSelec)
+	else if (grupconf.length > 0)
+		$("#cbxAvisoGr").val(grupconf.split("|")[0])
 
 	var ubiSelCong = $("#cbxConUbicacion").val()
-	var ubiConfi = dataLogConUsu.Ubicaciones	 //console.log(ubiConfi.split("|")[0])
+	var ubiConfi = dataLogConUsu.Ubicaciones
 	if (ubiSelCong != "")
 		$("#txtAviCodUbiTecLis").val(ubiSelCong)
 	else if (ubiConfi.length > 0)
 		$("#txtAviCodUbiTecLis").val(ubiConfi.split("|")[0])
 
-	$("select#cbxAviGrupo,#cbxAvisoTip,select#cbxAvisoEq,select#cbxAvisoGr").change()
+	$("select#cbxAviGrupo,#cbxAvisoTip,select#cbxAvisoGr").change()
 
-	var html = "";
-	html = html + '<tr><td colspan=11 style="text-align:rigth" >No hay registros...</td></tr>'
-	$("#tabAviso").find('tbody').empty();
-	$("#tabAviso").find('tbody').append(html);
-	$("#tabAviso").trigger('create')
-	$("#tabAviso").table("refresh");
-
-
+  
 
 }
-
 
 var lstAvisos = []
 function listarGestionAvisos() {
 
 	var grupos = ""
-	var ubicaciones = ""
+	var ubi = $("#txtAviCodUbiTecLis").val()
+	//Verifica si las ubicaciones estan en las asignadas
+
+	var datos = dataLogConUsu.Ubicaciones.split("|");
+
+	var existeU = false
+	for (i = 0; i < datos.length; i++) {
+		if (ubi.indexOf(datos[i], ubi) >= 0) existeU = true
+	}
+	if (!existeU) {
+		navigator.notification.alert("El Usuario no tiene asignado esta Ubicación")
+		return
+	}
+
 	$("#txtFilter").val("")
 
 	if ($("#cbxAviGrupo").val() == "0" || $("#cbxAviGrupo").val() == "") {
@@ -109,7 +128,8 @@ function listarGestionAvisos() {
 	} else
 		grupos = $("#cbxAviGrupo").val()
 
-	var ubi = $("#txtAviCodUbiTecLis").val()
+
+	var ubicaciones = ubi
 	var lstUbi = lstMaestros.filter(x => x.STABLA == "UBITEC")
 	if (ubi == "") {
 		$(lstUbi).each(function (i, row) {
@@ -117,20 +137,27 @@ function listarGestionAvisos() {
 		})
 	}
 	else {
+
+		ubicaciones = ubi.toUpperCase()
 		$(lstUbi).each(function (i, row) {
 			if (row.SITEM.indexOf(ubi) == 0)
 				ubicaciones = ubicaciones == "" ? row.SITEM : ubicaciones + "|" + row.SITEM
 		})
+		if (ubicaciones == ubi.toUpperCase()) {
+			navigator.notification.alert("El Usuario no tiene asignado esta Ubicación")
+			return
+		}
 	}
-
-	var avisoBE = {
-		CodAviso: $("#txtAviAviso").val(),
-		Centro: $("#txtConCentro").val(), //"3904"
-		Puesto: $("#txtConPuesto").val(),     //'PRY-TECN',
-		Grupo: grupos,    //'C51',
-		Ubicacion: ubicaciones,  //'PC-PI-M-SUL-00001',
-		perfil: dataLogConUsu.Perfil
-	};
+	
+		var avisoBE = {
+			CodAviso: $("#txtAviAviso").val(),
+			Centro: $("#txtConCentro").val(), //"3904"
+			Puesto: $("#txtConPuesto").val(),     //'PRY-TECN',
+			Grupo: grupos,    //'C51',
+			Ubicacion: ubicaciones,  //'PC-PI-M-SUL-00001',
+			perfil: dataLogConUsu.Perfil,
+			Tipo: dataLogConUsu.Tipos
+		};
 
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/ListaAviso",
@@ -154,50 +181,62 @@ function listarGestionAvisos() {
 	});
 }
 
+function verFiltroAviso(accion) {
+
+	var lengtF = 98
+	if ($('#ulAvisoFiltro').is(':visible')) {
+		$('#ulAvisoFiltro').hide()
+	} else {
+		lengtF = 118 + $('#ulAvisoFiltro').height()
+		$('#ulAvisoFiltro').show()
+	}
+
+	var content = $(".ui-content").height()
+
+	$("#ulAvisos").height(content - lengtF);
+	if (accion == 'B')
+		$('#txtFilAv').focus();
+
+}
 
 function listarAvisos(data) {
 	//console.log(data.find(x => x.CodAviso == $("#txtAvisoCodigo").val()))
+	//var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
 
-	var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
+	$("#ulAvisos").html("")
 
-	var html = ""
+	var html = "" //'<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p>...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
 	var existe = false;
 
 	$(data).each(function (i, row) {
 		existe = true;
-		var flgRegOpe = row.FlagReq == null ? "" : row.FlagReq;
-		var modVer = "-";
-		var aprobacion = ""
-		if (perUsu.IMODIFICAR == "1")
-			modVer = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-edit ui-btn-icon-notext ui-btn-b ui-mini" onClick="editarAviso(\'' + row.CodAviso + '\')"></a>'
-		else if (perUsu.ICONSULTAR == "1" && perUsu.IMODIFICAR != "1")
-			modVer = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-eye ui-btn-icon-notext ui-btn-d ui-mini" onClick="editarAviso(\'' + row.CodAviso + '\')"></a>'
+		var colorFila = row.Estado == "1" ? "red" : row.Estado == "3" ? "#B5B2B2" : "";
 
-		var colorFila = row.Estado == "1" ? "red" : ""
 
-		html = html + '<tr id = "idItem_' + row.CodAviso + '" style="color:' + colorFila + '"> ' +
-			'<td style="text-align:center;" >' + (i + 1) + '</td>' +
-			'<td>' + row.CodAviso + '</td>' +
-			'<td>' + row.Tipo + '</td>' +
-			'<td >' + row.FInicio + '</td>' +
-			'<td >' + row.Titulo + '</td>' +
-			'<td >' + row.Ubicacion + '</td>' +
-			'<td >' + row.Equipo + '</td>' +
-			'<td >' + row.Grupo + '</td>' +
-			'<td >' + row.Centro + '</td>' +
-			'<td>' + row.DEstado + '</td>' +
-			//'<td>' + flgRegOpe + '</td>' +
-			'<td >' + modVer + "&nbsp;" + aprobacion + '</td></tr>';
+		html = html + '<li data-theme="b" style="color:' + colorFila + '" onclick="editarAviso(' + row.CodAviso + ')"> ' +
+			' <p style="float:right;fon"><strong>' + row.CodAviso + '</strong></p>' +
+			' <h2>' + row.Ubicacion + '</h2> ' +
+			' <p><strong>' + row.Titulo + '</strong></p>' +
+			' <p style="float:left;">' + row.FInicio + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- &nbsp;&nbsp;&nbsp;' + row.Tipo + '</p> <p style="float:right;">' + row.DEstado + '</p>' +
 
+			'</li>'
 	})
-	if (!existe) {
-		html = html + '<tr><td colspan=11 style="text-align:rigth" >No hay registros...</td></tr>'
-	}
 
-	$("#tabAviso").find('tbody').empty();
-	$("#tabAviso").find('tbody').append(html);
-	$("#tabAviso").trigger('create')
-	$("#tabAviso").table("refresh");
+
+	if (!existe) {
+		html = html + '<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
+	}
+	$("#ulAvisos").html(html)
+	$('#ulAvisos').listview('refresh');
+
+	if (data.length > 0) {
+		verFiltroAviso('N')
+		$('#ulAvisoFiltro').hide()
+	}
+	else {
+		verFiltroAviso('N')
+		$('#ulAvisoFiltro').show()
+	}
 
 }
 
@@ -208,23 +247,58 @@ function editarAviso(codigoAviso) {
 	$("#cbxAvisoTip").selectmenu().selectmenu("enable");
 	$("#cbxAvisoTip").selectmenu().selectmenu("disable");
 
+	$("#cbxAvisoPuesto").selectmenu().selectmenu("enable");
+	$("#cbxAvisoPuesto").selectmenu().selectmenu("disable");
+	$("#cbxAvisoGr").selectmenu().selectmenu("enable");
+	$("#cbxAvisoGr").selectmenu().selectmenu("disable");
+
+	$("#cbxAvisoPuesto").selectmenu("enable");
+	$("#cbxAvisoGr").selectmenu("enable");
+
+	$("#hidFlgAviCentroPT").val("")
+	$("#hidFlgAvisoPuesto").val("")
+	$("#hidFlgAviCentroPL").val("")
+
 	//supervisor muestra opcion para Autorizar
 	$("#txtAviDesEstado").show()
 	$("#divSupAut").hide()
+	$("#txtAviOM").hide()
+	$("#hidAviOM").val("")
 
 	$('#cbxAvisoParada').slider()
-	// MTTO_SUPERV crea Z2 modifica Z3
-	// MTTO_TECN crea Z2 modifica Z3
-	// MTTO_CLIENTE crea Z2	
-	//dataLogConUsu.Perfil = "MTTO_SUPERV"
+
 	var arrayTipos = null;
 	if (dataLogConUsu.Tipos.length > 0)
 		arrayTipos = dataLogConUsu.Tipos.split("|")
 	var opcTipo = -1;
 
+
+	$("#txtAvisoTitulo").prop("readonly", false);
+	$("#txtAvisoCentroPT").prop("readonly", false);
+
+	$("#txtAvisoCentroPL").prop("readonly", false);
+	$("#dateAvisoIni").prop("readonly", false);
+	$("#timeAvisoHora").prop("readonly", false);
+	$("#dateAvisoDesea").prop("readonly", false);
+
+
+	$("#txtAviCodUbi").prop("readonly", false);
+	$("#txtAvisoEqu").prop("readonly", false);
+
+	$("#btnBusUbiEdit").prop("disabled", false);
+	$("#btnBusEqui").prop("disabled", false);
+	$("#btnBusPtoCentro").prop("disabled", false);
+
+	$("#cbxAvisoParada").attr("disabled", false);
+
 	if (codigoAviso == "") {
 
+
+
+
 		$("#txtAvisoDescIni").val("Pendiente")
+		$("#txtAviDesEstado").html("Estado:   <span style='font-size:17px;color: darkblue;'>PENDIENTE</span>")
+
 
 		$("#titEditarAviso").html('Nuevo Aviso')
 		opcTipo = -1
@@ -256,33 +330,45 @@ function editarAviso(codigoAviso) {
 		$("#txtAvisoCodigo").val("0");
 		$("#txtAvisoTitulo").val("");
 		$("#txtAvisoDesc").val("");
-		$("#cbxAvisoTip").val("");
+
+		if ($("#cbxConTipo").val() != "")
+			$("#cbxAvisoTip").val($("#cbxConTipo").val());
+		else if (dataLogConUsu.Tipos.split("|").length > 0)
+			$("#cbxAvisoTip").val(dataLogConUsu.Tipos.split("|")[0])
+		else
+			$("#cbxAvisoTip").val("")
+
 		$("#txtAviCodUbi").val("");
-		$("#cbxAvisoEq").val("");
-		$("#txtAvisoEq").val("");
-		$("#cbxAvisoGr").val("");
-		$("#txtAvisoPuesto").val($("#txtConPuesto").val())
-		$("#txtAvisoCentroPL").val($("#txtConCentro").val())
-		$("#txtAvisoCentroEM").val("")
-		$("#hidAvisoCentroSU").val("")
+		$("#txtAvisoEqu").val("");
+
+		if ($("#cbxConGrupo").val() != "")
+			$("#cbxAvisoGr").val($("#cbxConGrupo").val());
+		else if (dataLogConUsu.Grupos.split("|").length > 0)
+			$("#cbxAvisoGr").val(dataLogConUsu.Grupos.split("|")[0]);
+		else
+			$("#cbxAvisoGr").val("");
+
+		$("#txtAvisoCentroPT").val(dataLogConUsu.Centro)
+		obtenerCbxPtoTra(dataLogConUsu.Centro, dataLogConUsu.Puesto, "AVI")
+		//$("#cbxAvisoPuesto").val(dataLogConUsu.Puesto)
+
+		$("#txtAvisoCentroPL").val(dataLogConUsu.Centro)
+
 		$("#dateAvisoIni").val(fecha);
 		$("#dateAvisoDesea").val(fecha);
 		$("#timeAvisoHora").val(horaAct);
 		$("#hidAviEstado").val("1")
+
 		$("#cbxAvisoParada").val("0").slider('refresh')
+		$(".ui-slider-switch").removeClass("ui-state-disabled");
 
 		$("#cbxAvisoTip").selectmenu("enable");
-		$("#txtAviCodUbi").prop("disabled", false);
-		$("#btnBusUbiEdit").prop("disabled", false);
-
-		$("#divcbxAvisoEq").show()
-		$("#divtxtAvisoEq").hide()
-
 
 	}
 	else if (codigoAviso !== "") {
 
 		var dataAviso = lstAvisos.filter(x => x.CodAviso == codigoAviso);
+		//console.log(dataAviso)
 		$("#titEditarAviso").html('Editar Aviso: ' + codigoAviso)
 		opcTipo = -1
 		if (dataLogConUsu.Perfil == "MTTOSUPERV" || dataLogConUsu.Perfil == "MTTOTECN") {
@@ -290,15 +376,40 @@ function editarAviso(codigoAviso) {
 		}
 		if (dataLogConUsu.Perfil == "MTTO_SUPERV" && dataAviso[0].Estado == "1") {
 			$("#divSupAut").show()
-			$("#txtAviDesEstado").hide()
+			//$("#txtAviDesEstado").hide()
+			$("#txtAviOM").hide()
+		}
+		// con OM  solamente visualizar operaciones y materiales 
+		var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
+		if (perUsu.IAGREGAR = 1 && dataAviso[0].Estado == 3) {
+			$("#btnNueOpe").prop("disabled", true);
+			$("#btnRegOpe").prop("disabled", true);
+			$("#btnRegOpeExt").prop("disabled", true);
+			$("#btnNueMat").prop("disabled", true);
+			$("#btnRegOpeMat").prop("disabled", true);
 		}
 
+		if (perUsu.IAGREGAR = 1 && dataAviso[0].Estado != 3) {
+			$("#btnNueOpe").prop("disabled", false);
+			$("#btnRegOpe").prop("disabled", false);
+			$("#btnRegOpeExt").prop("disabled", false);
+			$("#btnNueMat").prop("disabled", false);
+			$("#btnRegOpeMat").prop("disabled", false);
+		}
+		if (dataAviso[0].Estado == 3) {
+			$("#txtAviOM").show()
+			$("#hidAviOM").val(dataAviso[0].Orden)
+			//$("#txtAviDesEstado").hide()
+		}
 		//estado : 1.- Pendiente,2.-Evaluando,3.-Asignado,4.- Cerrado
-		$("#txtAviDesEstado").html("Estado:   <span style='font-size:20px;color: blue;'>" + dataAviso[0].DEstado + "</span>")
+		$("#txtAviDesEstado").html("Estado:   <span style='font-size:17px;color: darkblue;'>" + dataAviso[0].DEstado + "</span>")
+
+		$("#txtAviOM").html("<span style='font-size:17px;color: darkblue;'>" + dataAviso[0].Orden + "</span>")
 
 		$("#divDesIni").show()
 		$("#txtAvisoDescIni").val(dataAviso[0].Descripcion)
 		// hora 	
+
 		var horaIni = "", hora = ""
 		var dataHora = dataAviso[0].Hora;
 		if (dataHora.length > 0) {
@@ -310,48 +421,91 @@ function editarAviso(codigoAviso) {
 		$("#txtAvisoCodigo").val(codigoAviso);
 		$("#txtAvisoTitulo").val(dataAviso[0].Titulo);
 		$("#txtAvisoDesc").val("");
-		$("#dateAvisoIni").val(dataAviso[0].FInicio)
-		$("#dateAvisoDesea").val(dataAviso[0].FDeseado)
+
+		$("#dateAvisoIni").val("")
+		$("#dateAvisoDesea").val("")
+		if (dataAviso[0].FInicio != "") {
+			var arrayD = dataAviso[0].FInicio.split("/")
+			$("#dateAvisoIni").val(arrayD[2] + "-" + arrayD[1] + "-" + arrayD[0])
+		}
+		if (dataAviso[0].FDeseado != "") {
+			var arrayD = dataAviso[0].FDeseado.split("/")
+			$("#dateAvisoDesea").val(arrayD[2] + "-" + arrayD[1] + "-" + arrayD[0])
+		}
+
 		$("#timeAvisoHora").val(hora)
 		$("#txtAviCodUbi").val(dataAviso[0].Ubicacion)
-		$("#txtAvisoPuesto").val(dataAviso[0].Puesto)
-		$("#txtAvisoCentroPL").val(dataAviso[0].Centro)
 
+		$("#hidFlgAviCentroPT").val(dataAviso[0].CentroPT)
+		$("#hidFlgAvisoPuesto").val(dataAviso[0].Puesto)
+		$("#hidFlgAviCentroPL").val(dataAviso[0].Centro)
+
+		$("#txtAvisoCentroPT").val(dataAviso[0].CentroPT)
+		obtenerCbxPtoTra(dataAviso[0].CentroPT, dataAviso[0].Puesto, "AVI")
+		//$("#cbxAvisoPuesto").val(dataAviso[0].Puesto)
+		$("#txtAvisoCentroPL").val(dataAviso[0].Centro)
 		$("#hidAviEstado").val(dataAviso[0].Estado)
 
 		$("#cbxAvisoTip").val(dataAviso[0].Tipo);
 		$("select#cbxAvisoTip").change()
+		$("#txtAvisoEqu").val(dataAviso[0].Equipo)
 
-		$("#textFlgCbxEqui").val("0")
-		if (dataAviso[0].Ubicacion.length > 0) {
-			obtenerDatosEquipo(dataAviso[0].Ubicacion)
-			$("#textFlgCbxEqui").val("1")
-		}
-		$("#cbxAvisoEq").val(dataAviso[0].Equipo)
-		$("#txtAvisoEq").val(dataAviso[0].Equipo)
 		$("#cbxAvisoGr").val(dataAviso[0].Grupo)
 
 		$("#cbxAvisoParada").val(dataAviso[0].Parada).slider('refresh')
+		//$(".ui-state-disabled").removeClass("ui-state-disabled");
 
 		$("#cbxAvisoTip").selectmenu("disable");
-		$("#txtAviCodUbi").prop("disabled", true);
-		$("#btnBusUbiEdit").prop("disabled", true);
 
-		$("#divcbxAvisoEq").hide()
-		$("#divtxtAvisoEq").show()
+
+		if (dataAviso[0].Estado > 2) {
+
+			$("#txtAviCodUbi").prop("readonly", true);
+			$("#txtAvisoEqu").prop("readonly", true);
+
+			$("#btnBusUbiEdit").prop("disabled", true);
+			$("#btnBusEqui").prop("disabled", true);
+
+			//// 
+			$("#txtAvisoTitulo").prop("readonly", true);
+			$("#txtAvisoCentroPT").prop("readonly", true);
+			$("#txtAvisoCentroPL").prop("readonly", true);
+			$("#dateAvisoIni").prop("readonly", true);
+			$("#timeAvisoHora").prop("readonly", true);
+			$("#dateAvisoDesea").prop("readonly", true);
+
+			$("#cbxAvisoPuesto").selectmenu("disable");
+			$("#cbxAvisoGr").selectmenu("disable");
+
+			$("#cbxAvisoParada").attr("disabled", true);
+			$(".ui-slider-switch").addClass("ui-state-disabled");
+
+			$("#btnBusPtoCentro").prop("disabled", true);
+
+
+		}
+
+
+		//Obtiene datos del equipo
+		onchanEquiBusUbi()
 
 	}
 
-	$("select#cbxAvisoTip,select#cbxAvisoEq,select#cbxAvisoGr").change()
+
+
+	$("select#cbxAvisoTip,select#cbxAvisoGr").change()
 
 	$.mobile.changePage('#pagEditarAviso')
-	$("#textFlgCbxEqui").val("0")
+
 }
+
 
 function onchaBusUbiTecList(txtData) {
 
 	var codUbi = txtData.value
-	if (codUbi.trim() == "") return;
+	if (codUbi.trim() == "") {
+		return;
+	}
 
 	var lstData = lstMaestros.filter(x => x.STABLA == "UBITEC");
 	var data = lstData.filter(u => u.SITEM == codUbi);
@@ -368,39 +522,29 @@ function onchaBusUbiTecList(txtData) {
 
 }
 
+
 var lstAviEquipos = [];
 function onchaBusUbiTec(txtData) {
+
 	var codUbi = txtData.value
-	if (codUbi.trim() == "") return;
+	if (codUbi.trim() == "") {
+		$("#txtAvisoEqu").val("")
+		return;
 
+	}
 	var lstData = lstMaestros.filter(x => x.STABLA == "UBITEC");
-
 	var data = lstData.filter(u => u.SITEM == codUbi);
 	if (data.length == 0) {
 		$("#txtAviCodUbi").val("")
-		$("#txtAviDesUbi").val("")
-		$("#cbxAvisoEq").val("")
-		$("select#cbxAvisoEq").change()
-
+		$("#txtAvisoEqu").val("")
+		navigator.notification.alert("Ubicación no asignada al Usuario")
+		return
 	}
-	else if (data.length != 0) {
-		$("#txtAviCodUbi").val(data[0].SITEM)
-		$("#txtAviDesUbi").val(data[0].DITEM)
-
-		$("#txtAvisoPuesto").val("")
-		$("#txtAvisoCentroPL").val("")
-		$("#txtAvisoCentroEM").val("")
-		$("#hidAvisoCentroSU").val("")
-		$("#cbxAvisoGr").val("")
-		$("select#cbxAvisoGr").change()
-		obtenerDatosEquipo(codUbi)
-	}
-
+	obtenerDatosEquipo(codUbi)
 }
 
 
 function verPaginaUbicaciones(opc) {
-
 	$("#hidAviUbiTecOpc").val(opc)
 	$.mobile.changePage('#pagAviSelUbiTec')
 }
@@ -425,67 +569,50 @@ function retornaAviUbiTec(checkparametro) {
 
 }
 
-function retornaPapOpc() {	
+function retornaPagOpc() {
 	var opc = $("#hidAviUbiTecOpc").val()
-	
+
 	if (opc == "E")
 		$.mobile.changePage('#pagEditarAviso')
 	else if (opc == "L")
 		$.mobile.changePage('#pagListaAvisos')
 	else if (opc == "OM")
-	  $.mobile.changePage('#pagGestionOM')
+		$.mobile.changePage('#pagGestionOM')
 }
+
+function obteneEquiposUbi() {
+	var ubiTec = $("#txtObtenerEquiUbi").val()
+	if (ubiTec == "") {
+		navigator.notification.alert("Ingrese Ubicación ")
+		return
+	}
+
+	var lstData = lstMaestros.filter(x => x.STABLA == "UBITEC");
+	var data = lstData.filter(u => u.SITEM == ubiTec);
+	if (data.length == 0) {
+		$("#txtObtenerEquiUbi").val("")
+		navigator.notification.alert("Ubicación no asignada al Usuario")
+		return
+	}
+	obtenerDatosEquipo(ubiTec)
+}
+
 
 var equipoUbi = [];
 function obtenerDatosEquipo(ubicacion) {
-
-	var codAvi = $("#txtAvisoCodigo").val()
 
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/ListaEquipos?ubicacion=" + ubicacion,
 		type: "get",
 		timeout: 60000,
-		async: false,
 		beforeSend: function () {
 			$("#cargando").show();
 			lstAviEquipos.length = 0;
 		},
 		success: function (data) {
-
 			$("#cargando").hide();
-			$("#cbxAvisoEq").empty()
-			$("#cbxAvisoEq").append('<option value="">Seleccione Equipo</option>')
+			listaEquiposUbicacion("U", "L", ubicacion, data)
 
-			$(data).each(function (i, row) {
-				$("#cbxAvisoEq").append('<option value="' + row.Equipo + '">' + row.Equipo + " " + row.Nombre + '</option>')
-			})
-
-			if (data.length == 1) {
-
-				$("#cbxAvisoEq").val(data[0].Equipo)
-				$("select#cbxAvisoEq").change()
-				//$('#cbxAvisoEq').attr("disabled", true);
-
-				equipoUbi = data.find(x => x.Equipo == data[0].Equipo);
-				// console.log(equipoUbi)
-				if (equipoUbi != null && codAvi == "0") {
-
-					$("#txtAvisoPuesto").val(equipoUbi.Puesto)
-					$("#cbxAvisoGr").val(equipoUbi.Grupo)
-					$("#txtAvisoCentroPL").val(equipoUbi.CentroPL)
-					//$("#hidAvisoCentroSU").val(dataEqui[0].Centro)
-					//$("#hidAvisoAlmacen").val(dataEqui[0].Centro)
-					//console.log(equipoUbi)
-					$("select#cbxAvisoGr").change()
-				}
-			}
-			else {
-				$("#cbxAvisoEq").val("")
-				$("select#cbxAvisoEq").change()
-				//$("#cbxAvisoEq").attr("disabled", false);
-			}
-
-			lstAviEquipos = data;
 		},
 		error: function (jqXHR, exception) {
 			$("#cargando").hide();
@@ -494,22 +621,202 @@ function obtenerDatosEquipo(ubicacion) {
 	});
 }
 
-function onchaEquipo(cbxData) {
-	var flgCbx = $("#textFlgCbxEqui").val()
+function datosPorEquipoEditAviso(equipo) {
 
-	var equipo = cbxData.value;
-	var dataEqui = lstAviEquipos.filter(x => x.Equipo == equipo);
+	$("#tblAviEquipos tbody tr").each(function (index, row) {
+		var codEquipo = $(row).find("td").find("input[name='txtEquipo']").val()
+		var grupo = $(row).find("td").find("input[name='txtGrupo']").val()
+		var puestoT = $(row).find("td").find("input[name='txtPuestoT']").val()
+		var centroPL = $(row).find("td").find("input[name='txtCentroPL']").val()
+		var centroPT = $(row).find("td").find("input[name='txtCentroPT']").val()
+		var ubiTec = $(row).find("td").find("input[name='txtUbicacion']").val()
+		//$(row).find("td").find("input[name='txtCentroEM']").val()
+		//$(row).find("td").find("input[name='txtDesEquipo']").val()
+		//$(row).find("td").find("input[name='txtAlmacenSU']").val()
+		//$(row).find("td").find("input[name='txtCentroSU']").val()
+		if (codEquipo == equipo) {
+			$("#txtAviCodUbi").val(ubiTec)
+			$("#cbxAvisoGr").val(grupo)
+			$("select#cbxAvisoGr").change()
 
-	if (dataEqui.length > 0 && flgCbx != "1") {
-		$("#txtAvisoPuesto").val(dataEqui[0].Puesto)
-		$("#cbxAvisoGr").val(dataEqui[0].Grupo)
-		$("#txtAvisoCentroPL").val(dataEqui[0].CentroPL)
-		$("#txtAvisoCentroEM").val(dataEqui[0].CentroEM)
-		$("#hidAvisoCentroSU").val(dataEqui[0].Centro)
-		$("select#cbxAvisoGr").change()
-	}
+
+			$("#txtAvisoCentroPL").val(centroPL)
+			$("#txtAvisoCentroPT").val(centroPT)
+			obtenerCbxPtoTra(centroPT, puestoT, "AVI")
+			//$("#cbxAvisoPuesto").val(puestoT)
+
+			$("#txtAvisoEqu").val(equipo)
+
+
+		}
+	})
+
+	$.mobile.changePage('#pagEditarAviso')
+}
+
+
+function onchanEquiBusUbi() {
+
+	var equipo = $("#txtAvisoEqu").val()
+	if (equipo == "") return
+
+	$.ajax({
+		url: getIPorHOSTApi() + "MttoChimuAPI/VerEquipo?equipo=" + equipo,
+		type: "get",
+		timeout: 60000,
+		beforeSend: function () {
+			$("#cargando").show();
+			lstAviEquipos.length = 0;
+		},
+		success: function (data) {
+			$("#cargando").hide();
+
+			if (data == null || data.Ubicacion == null || data.Ubicacion == "") {
+				navigator.notification.alert("No se encontró el código del equipo")
+				$("#txtAvisoEqu").val("")
+				return
+			}
+			var lstUbiUsu = dataLogConUsu.Ubicaciones.split("|")
+			var valor = 0;
+			$(lstUbiUsu).each(function (i, row) {
+				if (data.Ubicacion.includes(row))
+					valor = valor + 1
+			})
+			if (valor == 0) {
+				navigator.notification.alert("El usuario no tiene asignado la Ubicación: " + data.Ubicacion)
+				$("#txtAviCodUbi").val("")
+				$("#txtAvisoEqu").val("")
+				return
+
+			}
+
+			listaEquiposUbicacion("E", "L", data.Ubicacion, data)
+
+
+		},
+		error: function (jqXHR, exception) {
+			$("#cargando").hide();
+			navigator.notification.alert("Error: No se encontro  equipos " + jqXHR)
+		}
+	});
 
 }
+
+function listaEquiposUbicacion(opc, tipo, ubicacion, data) {
+
+	if (opc == "U" && data.length == 0) {
+		$("#txtAvisoEqu").val("")
+		$("#txtAviCodUbi").val("")
+		navigator.notification.alert("Ubicación no exsite  ")
+		return
+	}
+
+	$("#txtObtenerEquiUbi").val(ubicacion)
+	if (opc == "U" && data.length > 1) $("#txtAvisoEqu").val("")
+
+	if (opc == "U" && data.length == 1) {
+
+		$("#cbxAvisoGr").val(data[0].Grupo)
+		$("select#cbxAvisoGr").change()
+
+		$("#txtAvisoCentroPT").val(data[0].CentroPT)
+		obtenerCbxPtoTra(data[0].CentroPT, data[0].Puesto, "AVI")
+		//$("#cbxAvisoPuesto").val(data[0].Puesto)	
+
+		$("#txtAvisoCentroPL").val(data[0].CentroPL)
+		$("#txtAvisoEqu").val(data[0].Equipo)
+		$("#txtAviCodUbi").val(data[0].Ubicacion)
+
+		equipoUbi = data[0]
+
+	}
+	// equipo 1 a  1
+	if (opc == "E") {
+		$("#cbxAvisoGr").val(data.Grupo)
+		$("select#cbxAvisoGr").change()
+		// centro PT
+		var centroPt = $("#hidFlgAviCentroPT").val()
+		if (centroPt != "")
+			$("#txtAvisoCentroPT").val(centroPt)
+		else
+			centroPt = data.CentroPT
+
+		$("#txtAvisoCentroPT").val(centroPt)
+		// puesto
+		var flgPuesto = $("#hidFlgAvisoPuesto").val()
+		if (flgPuesto == "")
+			flgPuesto = data.Puesto
+		obtenerCbxPtoTra(centroPt, flgPuesto, "AVI")
+		//$("#cbxAvisoPuesto").val(data.Puesto)	
+		$("#txtAvisoCentroPL").val($("#hidFlgAviCentroPL").val())
+		if ($("#hidFlgAviCentroPL").val() == "")
+			$("#txtAvisoCentroPL").val(data.CentroPL)
+
+		$("#txtAvisoEqu").val(data.Equipo)
+		$("#txtAviCodUbi").val(data.Ubicacion)
+		//lipiar lfg 
+		$("#hidFlgAviCentroPT").val("")
+		$("#hidFlgAvisoPuesto").val("")
+		$("#hidFlgAviCentroPL").val("")
+
+
+		equipoUbi = data
+
+	}
+
+	var html = ""
+	var existe = false;
+	if (tipo != "N") {
+		$(data).each(function (index, row) {
+			existe = true;
+			html = html + '<tr> ' +
+				'<td>' + row.Equipo +
+				'<input type="hidden" name="txtGrupo" value="' + row.Grupo + '">' +
+				'<input type="hidden" name="txtPuestoT" value="' + row.Puesto + '">' +
+				'<input type="hidden" name="txtCentroPL" value="' + row.CentroPL + '">' +
+				'<input type="hidden" name="txtCentroEM" value="' + row.CentroEM + '">' +
+				'<input type="hidden" name="txtEquipo" value="' + row.Equipo + '">' +
+				'<input type="hidden" name="txtDesEquipo" value="' + row.Nombre + '">' +
+				'<input type="hidden" name="txtAlmacenSU" value="' + row.Almacen + '">' +
+				'<input type="hidden" name="txtCentroSU" value="' + row.CentroSU + '">' +
+				'<input type="hidden" name="txtCentroPT" value="' + row.CentroPT + '">' +
+				'<input type="hidden" name="txtUbicacion" value="' + row.Ubicacion + '">' +
+				'</td>' +
+				'<td>' + row.Ubicacion + '</td>' +
+				'</tr>';
+		})
+	}
+
+
+	if (!existe) {
+		html = html + '<tr><td colspan=2 style="text-align:rigth" >No hay registros...</td></tr>'
+	}
+
+	$("#tblAviEquipos").find('tbody').empty();
+	$("#tblAviEquipos").find('tbody').append(html);
+	$("#tblAviEquipos").trigger('create')
+
+}
+
+function mostrarPagEquiUbi() {
+
+	if ($("#txtAviCodUbi").val() == "") {
+		var html = "";
+		html = html + '<tr><td colspan=2 style="text-align:rigth" >No hay registros...</td></tr>'
+
+		$("#tblAviEquipos").find('tbody').empty();
+		$("#tblAviEquipos").find('tbody').append(html);
+		$("#tblAviEquipos").trigger('create')
+		$("#txtObtenerEquiUbi").val("")
+	}
+	else if ($("#txtAviCodUbi").val() != "") {
+		obtenerDatosEquipo($("#txtAviCodUbi").val())
+	}
+
+	$("#txtBusEquipo").val("")
+	$.mobile.changePage('#pagAviSelEquipo')
+}
+
 
 function enviarAutorizacion() {
 
@@ -522,81 +829,103 @@ function enviarAutorizacion() {
 
 }
 
+function onchaObtPuestoAvi(obj) {
+
+	if (obj.value == "") return
+
+	var centro = lstCentros.find(x => x.SITEM == obj.value)
+	if (centro == null) {
+		$("#txtAvisoCentroPT").val("")
+		$("#cbxAvisoPuesto").val("")
+		$("select#cbxAvisoPuesto").change()
+		navigator.notification.alert("Error, el Pto. centro ingresado no existe")
+	}
+	obtenerCbxPtoTra(obj.value, "", "AVI")
+
+}
+
+
 function grabarAviso() {
 
-	var CodAviso = $("#txtAvisoCodigo").val();
-	var Titulo = $("#txtAvisoTitulo").val();
-	var Tipo = $("#cbxAvisoTip").val();
-	//var Descripcion = CodAviso == "0" ? $("#txtAvisoDesc").val() : $("#txtAvisoDescIni").val() + " " + $("#txtAvisoDesc").val();
-	var Descripcion = $("#txtAvisoDesc").val();
-	var Ubicacion = $("#txtAviCodUbi").val();
-	var Equipo = CodAviso == '0' ? $("#cbxAvisoEq").val() : $("#txtAvisoEq").val();
-	var Puesto = $("#txtAvisoPuesto").val();
-	var Grupo = $("#cbxAvisoGr").val();
-	var Centro = $("#txtAvisoCentroPL").val()
-	var FInicio = $("#dateAvisoIni").val();
-	var FDeseado = $("#dateAvisoDesea").val();
-	var Hora = $("#timeAvisoHora").val();
-	var Parada = $("#cbxAvisoParada").val()
+	var codAviso = $("#txtAvisoCodigo").val();
+	var titulo = $("#txtAvisoTitulo").val();
+	var tipo = $("#cbxAvisoTip").val();
+	var descripcion = $("#txtAvisoDesc").val();
+	var ubicacion = $("#txtAviCodUbi").val();
+	var equipo = $("#txtAvisoEqu").val();
+	var puesto = $("#cbxAvisoPuesto").val();
+	var grupo = $("#cbxAvisoGr").val();
+	var centro = $("#txtAvisoCentroPL").val()
+	var centroPT = $("#txtAvisoCentroPT").val()
+	var fInicio = $("#dateAvisoIni").val();
+	var fDeseado = $("#dateAvisoDesea").val();
+	var hora = $("#timeAvisoHora").val();
+	var parada = $("#cbxAvisoParada").val()
 
-	if (Titulo == "") {
+	if (titulo == "") {
 		navigator.notification.alert("Ingrese Titulo")
 		return;
 	}
 
-	if (Tipo == "") {
+	if (tipo == "") {
 		navigator.notification.alert("Ingrese Tipo")
 		return;
 	}
 
-	if (Ubicacion.trim() == "") {
+	if (ubicacion.trim() == "") {
 		navigator.notification.alert("Ingrese código de ubicación")
 		return;
 	}
-	if (Puesto.trim() == "") {
-		navigator.notification.alert("Ingrese puesto")
+	if (centro.trim() == "") {
+		navigator.notification.alert("Ingrese Pto. Centro")
 		return;
 	}
 
-	if (Grupo == "" || Grupo == null) {
+	if (puesto.trim() == "") {
+		navigator.notification.alert("Seleccione Pto. Trabajo")
+		return;
+	}
+
+	if (grupo == "" || grupo == null) {
 		navigator.notification.alert("Seleccione grupo")
 		return;
 	}
 
-	if (Centro.trim() == "") {
-		navigator.notification.alert("Ingrese Grupo")
+	/*if (Centro.trim() == "") {
+		navigator.notification.alert("Ingrese Centro")
 		return;
-	}
+	}*/
 
-	if (FInicio.length == 0) {
+	if (fInicio.length == 0) {
 		navigator.notification.alert("Ingrese fecha incio")
 		return;
 	}
 
-	if (FDeseado.length == 0) {
+	if (fDeseado.length == 0) {
 		navigator.notification.alert("Ingrese fecha deseada")
 		return;
 	}
 
-	if (Hora.length == 0) {
+	if (hora.length == 0) {
 		navigator.notification.alert("Ingrese hora")
 		return
 	}
 
 	var AvisoBE = {
-		CodAviso: CodAviso,
-		Titulo: Titulo,
-		Tipo: Tipo,
-		Descripcion: Descripcion,
-		Ubicacion: Ubicacion,
-		Equipo: Equipo,
-		Puesto: Puesto,
-		Grupo: Grupo,
-		Centro: Centro,
-		FInicio: FInicio,
-		FDeseado: FDeseado,
-		Hora: Hora,
-		Parada: Parada,
+		CodAviso: codAviso,
+		Titulo: titulo,
+		Tipo: tipo,
+		Descripcion: descripcion,
+		Ubicacion: ubicacion,
+		Equipo: equipo,
+		Puesto: puesto,
+		Grupo: grupo,
+		Centro: centro,
+		CentroPT: centroPT,
+		FInicio: fInicio,
+		FDeseado: fDeseado,
+		Hora: hora,
+		Parada: parada,
 		Usuario: getLocalStorage("susuario"),
 		Estado: $("#hidAviEstado").val()
 	}
@@ -611,13 +940,13 @@ function grabarAviso() {
 			$("#cargando").show();
 		},
 		success: function (data) {
-			//console.log(data)
+
 			$("#cargando").hide();
 
 			if (data.Status != "OK")
 				navigator.notification.alert(data.Mensaje)
 			else if (data.Status == "OK") {
-				if (CodAviso == 0) {
+				if (codAviso == 0) {
 					$("#titEditarAviso").html('Editar Aviso:' + data.Codigo)
 					$("#txtAvisoCodigo").val(data.Codigo);
 					$('#btnMantRequerimiento').show();
@@ -637,7 +966,7 @@ function grabarAviso() {
 					$.mobile.changePage('#pagListaAvisos')
 				}
 
-				listarGestionAvisos()
+				listarGestionAvisos("C")
 			}
 		},
 		error: function (jqXHR, exception) {
@@ -648,42 +977,7 @@ function grabarAviso() {
 
 }
 
-
-var lstOpeAprobacion = []
-function mantAprobacionTecSup(codAviso) {
-
-	$("#titaprobarAviso").html("Aprobaciones Aviso: " + codAviso)
-	$("#codAvisoAprobar").val(codAviso)
-
-	var IPorHOST = getIPorHOSTApi();
-	var url = IPorHOST + "MttoChimuAPI/ListaAvisoOperacion";
-
-
-	$.ajax({
-		url: url,
-		crossDomain: true,
-		cache: false,
-		type: "Get",
-		timeout: 60000,
-		data: { codAviso: codAviso },
-		beforeSend: function () {
-			$("#cargando").show();
-		},
-		success: function (data) {
-			listarOpeAprobar(data)
-
-			$("#cargando").hide();
-		},
-		error: function (jqXHR, exception) {
-			$("#cargando").hide();
-			navigator.notification.alert("Problemas al obtenere datos de operación " + jqXHR)
-
-		}
-	});
-	$.mobile.changePage('#pagAprobSuperTecni')
-
-}
-
+/*
 function listarOpeAprobar(data) {
 
 	var html = ""
@@ -720,24 +1014,15 @@ function listarOpeAprobar(data) {
 	$("#tabAproSuper").table("refresh");
 
 
-}
-
+}*/
 
 
 var lstReqOperaciones = []
 function mantAvisoRequerimiento(codAviso) {
 
-
 	if (codAviso == "0") {
 		codAviso = $("#txtAvisoCodigo").val()
-		var html = '<tr><td colspan=5 style="text-align:rigth" >No hay registros...</td></tr>'
-		$("#tblReqOperacion").find('tbody').empty();
-	
-		$("#tblReqOperacion").find('tbody').append(html);
-		$("#tblReqOperacion").trigger('create')
-
 	}
-
 
 	if (codAviso == "0") {
 		navigator.notification.alert("Primero debe registrar el Aviso")
@@ -750,9 +1035,15 @@ function mantAvisoRequerimiento(codAviso) {
 
 	$.mobile.changePage('#pagMantRequerimiento')
 
+	var content = getRealContentHeight()
+	$(".ui-content").height(content - 58)
+	//$("#tblReqOperacion").height(content-58);
+
 }
 
+
 function obtenerReqOperacion(codAviso) {
+
 
 	var IPorHOST = getIPorHOSTApi();
 	var url = IPorHOST + "MttoChimuAPI/AvisoRequerimiento";
@@ -768,9 +1059,10 @@ function obtenerReqOperacion(codAviso) {
 
 		},
 		success: function (data) {
-			datosAvisoRequerimiento(data)
 			$("#cargando").hide();
-		
+			datosAvisoRequerimiento(data)
+
+
 		},
 		error: function (jqXHR, exception) {
 			$("#cargando").hide();
@@ -787,7 +1079,7 @@ function datosAvisoRequerimiento(data) {
 	$("#divSupGenOM").hide()
 
 	$("#hidCodReq").val(data.CodReq)
-	$("#txtReqDescripcion").val(data.Descripcion)
+
 	$("#txtReqEstado").val(data.ESTADO)
 
 	var codReg = $("#hidCodReq").val()
@@ -796,89 +1088,168 @@ function datosAvisoRequerimiento(data) {
 	if (dataLogConUsu.Perfil == "MTTO_SUPERV" && codReg != "0" && $("#hidAviEstado").val() == "2")
 		$("#divSupGenOM").show()
 
-	console.log(data.lstOpe)
-	if (data.lstOpe.length > 0) {
-		listarDataReqOperacion(data.lstOpe)
-	}
+	$("#hidNroAviOpe").val("0")
+	if (data.lstOpe.length > 0)
+		$("#hidNroAviOpe").val(data.lstOpe.length)
+
+	listarDataReqOperacion(data.lstOpe)
 
 }
 
-function registrarRegOpeMat() {
+function registrarReqOperacion() {
 
 	var codReq = $("#hidCodReq").val()
 	var codAviso = $("#txtAvisoCodigo").val()
-	var reqDescripcion = $("#txtReqDescripcion").val()
 	var reqEstado = "CREADO"//$("#txtReqEstado").val()
-	var accion = codReq == "0" ? "I" : "U"
+	var accion = codReq == "0" ? "I" : ""
 	var cusuario = getLocalStorage("cusuario")
 
 	var dataAvisoReq = {
 		CodReq: codReq,
 		Accion: accion,
 		CodAviso: codAviso,
-		Descripcion: reqDescripcion,
 		Estado: reqEstado,
 		Cusuario: cusuario
 	}
-	if (dataAvisoReq.Descripcion.trim() == "") {
-		navigator.notification.alert("Ingrese Descripción")
+
+	/*****   validar dator operacion  */
+
+	var reqBE = {
+		CodAviso: codAviso,
+		Modelo: $("#txtReqClaveModelo").val(),
+		DModelo: $("#txtReqDesModelo").val(),
+		Centro: $("#txtReqCentro").val(),
+		Puesto: $("#cbxReqPuesto").val(),
+		Ctrl: "PM01",
+		Personas: $("#txtReqNroPer").val(),
+		Horas: $("#txtReqHoras").val(),
+		CodServicio: "",
+		DServicio: "",
+		Cantidad: "",
+		UM: "",
+		Precio: "",
+		Total: "",
+		Solicitante: "",
+		Articulo: "",
+		Compras: "",
+		ESTADO: "",
+		Cusuario: getLocalStorage("cusuario")
+	}
+
+
+	if (reqBE.Modelo.trim() == "") {
+		navigator.notification.alert("Ingrese Modelo")
 		return
 	}
 
-	var IPorHOST = getIPorHOSTApi();
-	var url = IPorHOST + "MttoChimuAPI/MantAvisoRequerimiento";
-	$.ajax({
-		url: url,
-		type: "post",
-		timeout: 60000,
-		data: dataAvisoReq,
-		content: "application/json",
-		beforeSend: function () {
-			$("#cargando").show();
-		},
-		success: function (data) {
-			$("#cargando").hide();
-			if (data.Status == "OK") {
-				$("#hidCodReq").val(data.Codigo)
-				navigator.notification.alert("Dato registrado correctamente")
-				return true
-			} else {
-				navigator.notification.alert(data.Mensaje)
-				return false
+	if (reqBE.Personas == "") {
+		navigator.notification.alert("Ingrese Nro de personas")
+		return
+	}
+	if (reqBE.Horas == "") {
+		navigator.notification.alert("Ingrese Duración")
+		return
+	}
+	if (reqBE.Centro.trim() == "") {
+		navigator.notification.alert("Ingrese Pto. Centro")
+		return
+	}
+	if (reqBE.Puesto.trim() == "") {
+		navigator.notification.alert("Seleccione Pto. Trabajo")
+		return
+	}
+
+
+	if (accion == "I") {
+
+		var IPorHOST = getIPorHOSTApi();
+		var url = IPorHOST + "MttoChimuAPI/MantAvisoRequerimiento";
+		$.ajax({
+			url: url,
+			type: "post",
+			timeout: 60000,
+			data: dataAvisoReq,
+			content: "application/json",
+			beforeSend: function () {
+				$("#cargando").show();
+			},
+			success: function (data) {
+				$("#cargando").hide();
+
+				if (data.Status == "OK") {
+					$("#hidCodReq").val(data.Codigo)
+					grabarReqOperacion(reqBE, codAviso)
+				} else {
+					navigator.notification.alert(data.Mensaje)
+				}
+
+			},
+			error: function (jqXHR, exception) {
+				$("#cargando").hide();
+				navigator.notification.alert("Error: no se registro Requerimiento Operaciones " + jqXHR)
+
 			}
-
-		},
-		error: function (jqXHR, exception) {
-			$("#cargando").hide();
-			navigator.notification.alert("Problemas al obtenere datos de avisos " + jqXHR)
-			return false
-
-		}
-	});
-
-	return true
+		});
+	}
+	else
+		grabarReqOperacion(reqBE, codAviso)
 
 }
 
-function generarOM() {
- var contar = 0;
-	$("#tblReqOperacion tbody tr").each(function (index, row) {
-		var codOpe = $(row).find("td").find("input[name='reqOpeCodOpe']").val()
-		if (codOpe> 0) contar++;
-	})
-	if ( contar== 0){
-		navigator.notification.alert("El requeriminto no tiene operaciones")
-		return 
-	}
+function grabarReqOperacion(reqBE, codAviso) {
+	var codReq = $("#hidCodReq").val();
+	var codOpe = $("#hidReqCodOpe").val();
+	$("#hidReqCodigo").val(codReq)
+	//var codAviso = $("#txtAvisoCodigo").val()
+	reqBE.CodReq = codReq,
+		reqBE.CodOpe = codOpe,
+		reqBE.Accion = codOpe == "0" ? "I" : "U",
 
-    
+
+		$.ajax({
+			url: getIPorHOSTApi() + "MttoChimuAPI/MantAvisoOperacion",
+			type: "post",
+			timeout: 60000,
+			data: reqBE,
+			content: "application/json",
+			beforeSend: function () {
+				$("#cargando").show();
+			},
+			success: function (data) {
+				$("#cargando").hide();
+				if (data.Status == "OK") {
+					$.mobile.changePage('#pagMantRequerimiento')
+					obtenerOpeOperaciones(codAviso)
+				} else {
+					navigator.notification.alert(data.Mensaje)
+				}
+
+			},
+			error: function (jqXHR, exception) {
+				$("#cargando").hide();
+				navigator.notification.alert("Error al registrar los datos de operación " + jqXHR)
+			}
+		});
+}
+
+function generarOM() {
+	var contar = 0;
+	contar = $("#hidNroAviOpe").val();
+	/*$("#tblReqOperacion tbody tr").each(function (index, row) {
+		var codOpe = $(row).find("td").find("input[name='reqOpeCodOpe']").val()
+		if (codOpe > 0) contar++;
+	})*/
+	if (contar == 0) {
+		navigator.notification.alert("El requeriminto no tiene operaciones")
+		return
+	}
+	$("#titDatOM").html("Aviso: " + $("#txtAvisoCodigo").val())
 	$("#txtClaOM").val("")
 	$("#txtClaACOM").val("")
 	$("#txtPriOM").val("")
 
-	$.mobile.changePage('#pagPopIGeneraOM') 
 
-
+	$.mobile.changePage('#pagPopIGeneraOM')
 
 }
 
@@ -886,25 +1257,25 @@ function grabarGenerarOM() {
 
 	var claOM = $("#txtClaOM").val()
 	var claACOM = $("#txtClaACOM").val()
-	var prio  = $("#txtPriOM").val()
+	var prio = $("#txtPriOM").val()
 
-	if ( claOM==""){
+	if (claOM == "") {
 		navigator.notification.alert("Ingrese Clase")
-		return 
+		return
 	}
-	if (claACOM ==""){
+	if (claACOM == "") {
 		navigator.notification.alert("Ingrese Clase AC")
-		return 
+		return
 	}
-	if (prio ==""){
+	if (prio == "") {
 		navigator.notification.alert("Ingrese Prioridad")
-		return 
+		return
 	}
 
-	
+
 	var codAvi = $("#txtAvisoCodigo").val()
 	var estAvi = $("#hidAviEstado").val()
-	
+
 	var dataAviso = lstAvisos.find(x => x.CodAviso == codAvi);
 
 	var avisoBE = {
@@ -914,11 +1285,14 @@ function grabarGenerarOM() {
 		Equipo: dataAviso.Equipo,
 		FInicio: dataAviso.FInicio,
 		Grupo: dataAviso.Grupo,
-		Clase:claOM,
-		ClaseAC:claACOM,
-		Prioridad:prio,
+		Puesto: dataAviso.Puesto,
+		Ubicacion: dataAviso.Ubicacion,
+		Clase: claOM,
+		ClaseAC: claACOM,
+		Prioridad: prio,
+		Cusuario: getLocalStorage("cusuario")
 	}
-	
+
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/GenerarOM",
 		type: "post",
@@ -928,14 +1302,16 @@ function grabarGenerarOM() {
 		beforeSend: function () {
 			$("#cargando").show();
 		},
-		success: function (data) {	
-			$("#cargando").hide();		
-		if (data.Status != "OK")
-			navigator.notification.alert(data.Mensaje)
-	    else if  (data.Status == "OK"){			
-			navigator.notification.alert("Se ha creado OM:"+data.Codigo+ "\r\n" + data.Mensaje)
-		}
-			
+		success: function (data) {
+			$("#cargando").hide();
+			if (data.Status != "OK")
+				navigator.notification.alert(data.Mensaje)
+			else if (data.Status == "OK") {
+				navigator.notification.alert("Se ha creado OM:" + data.Codigo + "\r\n" + data.Mensaje)
+
+				$.mobile.changePage('#pagListaAvisos')
+				listarGestionAvisos("C")
+			}
 		},
 		error: function (jqXHR, exception) {
 			$("#cargando").hide();
@@ -949,7 +1325,7 @@ function mantReqOperacion() {
 
 	var codAviso = $("#txtAvisoCodigo").val();
 	var codReq = $("#hidCodReq").val();
-	var reqDes = $("#txtReqDescripcion").val();
+
 	var estado = "CREADO"//$("#txtReqEstado").val();
 
 
@@ -982,18 +1358,13 @@ function mantReqOperacion() {
 
 function nuevaReqOperacion() {
 
-	var puesto = $("#txtConPuesto").val()
+	var puesto = $("#cbxAvisoPuesto").val()
 	var codReq = $("#hidCodReq").val()
 	var codAviso = $("#txtAvisoCodigo").val()
-
-	if (codReq == "0" || codReq == "") {
-		navigator.notification.alert("Primero debe registrar el requerimiento")
-		return
-	}
-
+	var centro = $("#txtAvisoCentroPT").val()
 
 	$("#titEditarReqOpe").html('Aviso :' + codAviso);
-	$("#reqOpeLen").html("Operación: ")
+	$("#reqOpeLen").html("N° Operación: ")
 
 	var reqBE = {
 		CodReq: codReq,
@@ -1002,9 +1373,9 @@ function nuevaReqOperacion() {
 		Codigo: "",
 		Modelo: "",
 		DModelo: "",
-		Puesto: puesto,
-		Operacion: "",
-		Ctrl: "PMO1",
+		Puesto: "",
+		Centro: centro,
+		Ctrl: "PM01",
 		Personas: "",
 		Horas: "",
 		CodServicio: "",
@@ -1023,19 +1394,25 @@ function nuevaReqOperacion() {
 	$("#hidReqCodOpe").val(reqBE.CodOpe)
 	$("#txtReqClaveModelo").val(reqBE.Modelo)
 	$("#txtReqDesModelo").val(reqBE.DModelo)
-	$("#txtReqPuesto").val(reqBE.Puesto)
-	$("#txtReqOperacion").val(reqBE.Operacion)
+
+	$("#txtReqCentro").val(reqBE.Centro)
+	if (reqBE.Centro != "")
+		obtenerCbxPtoTra(centro, puesto, 'OPE')
+	//$("#cbxReqPuesto").val(reqBE.Puesto)
+
 	$("#cbxReqOpeCtrl").val(reqBE.Ctrl)
 	$("select#cbxReqOpeCtrl").change()
 
 	$("#txtReqNroPer").val(reqBE.Personas)
 	$("#txtReqHoras").val(reqBE.Horas)
+	$("#txtReqTrabajo").val("")
 
 	$("#hiddExtCodOperacion").val(reqBE.CodOpe)
 	$("#hidReqExtCodigo").val(reqBE.CodReq)
-	$("#txtReqExtOperacion").val("")
-	$("#hiddExtClaMod").val(reqBE.Modelo)
-	$("#hiddExtDesClaMod").val(reqBE.DModelo)
+
+
+	$("#txtExtClaMod").val(reqBE.Modelo)
+	$("#txtExtDesClaMod").val(reqBE.DModelo)
 	$("#txtReqCodSer").val(reqBE.CodServicio)
 	$("#txtReqServicio").val(reqBE.DServicio)
 	$("#txtReqCantidad").val(reqBE.Cantidad)
@@ -1045,6 +1422,9 @@ function nuevaReqOperacion() {
 	$("#txtReqSolicitante").val(reqBE.Solicitante)
 	$("#txtReqGrArticulo").val(reqBE.Articulo)
 	$("#txtReqGrCompras").val(reqBE.Compras)
+	$("#txtReqExtCentro").val("")// ope
+	$("#txtReqExtPuesto").val("") //ope
+
 
 	$("#cbxReqOpeCtrl").selectmenu().selectmenu("enable");
 	$("#cbxReqOpeCtrl").selectmenu("enable")
@@ -1056,24 +1436,16 @@ function nuevaReqOperacion() {
 
 function nuevoReqOpeExterno() {
 
-	if ($("#cbxReqOpeCtrl").val() != "PMO3") {
-		return
-	}
-	var reqClaveModelo = $("#txtReqClaveModelo").val()
 
-	if (reqClaveModelo.length == 0) {
-		navigator.notification.alert("Ingrese Clave Modelo")
-		$("#cbxReqOpeCtrl").val("PMO1")
-		$("select#cbxReqOpeCtrl").change()
-		return;
+	$("#txtReqExtCentro").prop("readonly", false);
+	$("#txtReqExtPuesto").prop("readonly", false);
+
+	if ($("#cbxReqOpeCtrl").val() != "PM03") {
+		return
 	}
 
 	var codReq = $("#hidCodReq").val()
 	var codAviso = $("#txtAvisoCodigo").val()
-	var modelo = $("#txtReqClaveModelo").val()
-	var dModelo = $("#txtReqDesModelo").val()
-	var puesto = $("#txtReqPuesto").val()
-
 
 	$("#hiddExtOpeCtrl").val("PM03")
 	var reqBE = {
@@ -1081,11 +1453,12 @@ function nuevoReqOpeExterno() {
 		CodOpe: 0,
 		CodAviso: codAviso,
 		Codigo: "",
-		Modelo: modelo,
-		DModelo: dModelo,
-		Puesto: puesto,
+		Modelo: "",
+		DModelo: $("#txtbusClaMod").val(),// suguiere la ultima descripcion del modelo
+		Centro: "3904",
+		Puesto: "MTO-EXTE",
 		Operacion: "",
-		Ctrl: "PMO3",
+		Ctrl: "PM03",
 		Personas: "",
 		Horas: "",
 		CodServicio: "",
@@ -1107,21 +1480,23 @@ function nuevoReqOpeExterno() {
 	$("#hidReqCodigo").val("")
 	$("#hidReqCodOpe").val("")
 	$("#txtReqClaveModelo").val("")
-	$("#txtReqDesModelo").val("")
-	$("#txtReqPuesto").val("")
-	$("#hidReqExtPuesto").val("")
-	$("#txtReqOperacion").val("")
+	$("#txtExtDesClaMod").val("")
+	$("#cbxReqPuesto").val("")
+	$("#txtReqExtPuesto").val("")
+
 	$("#cbxReqOpeCtrl").val("")
 	$("select#cbxReqOpeCtrl").change()
 	$("#txtReqNroPer").val("")
 	$("#txtReqHoras").val("")
 
-	$("#txtReqExtOperacion").val(reqBE.Operacion)
+
 	$("#hiddExtCodOperacion").val(reqBE.CodOpe)
 	$("#hidReqExtCodigo").val(reqBE.CodReq)
-	$("#hiddExtClaMod").val(reqBE.Modelo)
-	$("#hiddExtDesClaMod").val(reqBE.DModelo)
-	$("#hidReqExtPuesto").val(reqBE.Puesto)
+
+	$("#txtReqExtCentro").val(reqBE.Centro)
+	$("#txtReqExtPuesto").val(reqBE.Puesto)
+
+	$("#txtExtDesClaMod").val(reqBE.DModelo)
 	$("#txtReqCodSer").val(reqBE.CodServicio)
 	$("#txtReqServicio").val(reqBE.DServicio)
 	$("#txtReqCantidad").val(reqBE.Cantidad)
@@ -1132,11 +1507,43 @@ function nuevoReqOpeExterno() {
 	$("#txtReqGrArticulo").val(reqBE.Articulo)
 	$("#txtReqGrCompras").val(reqBE.Compras)
 
+	$("#txtReqExtCentro").prop("readonly", true);
+	$("#txtReqExtPuesto").prop("readonly", true);
+
 	$.mobile.changePage('#pagEditarReqOpeExterno')
 
+}
+
+function onchanTrabReal() {
+
+	var nroPer = $("#txtReqNroPer").val()
+	var nroHor = $("#txtReqHoras").val()
+
+	if (nroPer == "") nroPer = 0
+	if (nroHor == "") nroHor = 0
+	var nroPerEntero = nroPer.toString().split(".")
+	var nroHorUndec = nroHor.toString().split(".")
+
+	if (nroPerEntero[1] != undefined)
+		if (nroPerEntero[1].length > 0) {
+			$("#txtReqNroPer").val("")
+			$("#txtReqTrabajo").val("")
+			navigator.notification.alert("Nro. Personas solo valores enteros")
+			return
+		}
+	if (nroHorUndec[1] != undefined)
+		if (nroHorUndec[1].length > 1) {
+			$("#txtReqHoras").val("")
+			$("#txtReqTrabajo").val("")
+			navigator.notification.alert("Duración solo un decimal")
+			return
+		}
+
+	$("#txtReqTrabajo").val((parseFloat(nroPer) * parseFloat(nroHor)).toFixed(1))
 
 
 }
+
 
 function buscarModeloReq(tipo) {
 
@@ -1152,7 +1559,7 @@ function buscarModeloReq(tipo) {
 	}
 	else {
 		if ($("#txtbusClaMod").val().trim() == "") {
-			navigator.notification.alert("Ingresar Descripción Modulo")
+			navigator.notification.alert("Ingresar Descripción Modelo")
 			return
 		}
 		moduloBE.DITEM = $("#txtbusClaMod").val()
@@ -1185,8 +1592,8 @@ function buscarModeloReq(tipo) {
 	});
 
 }
-function verPagClaModelo() {
-
+function verPagClaModelo(tipo) {
+	$("#hidTipoRetModelo").val(tipo)
 	$.mobile.changePage('#pagReqSelClaMod')
 
 }
@@ -1281,7 +1688,7 @@ function listarServicioOpe(data) {
 		html = html + '<tr><td colspan=5 style="text-align:rigth" >No hay registros...</td></tr>'
 	}
 
-	$("#tblReqOpeSelServ").find('tbody').empty();	
+	$("#tblReqOpeSelServ").find('tbody').empty();
 	$("#tblReqOpeSelServ").find('tbody').append(html);
 	$("#tblReqOpeSelServ").trigger('create')
 	$("#tblReqOpeSelServ").table("refresh");
@@ -1372,20 +1779,20 @@ function editarRepOpeExt(codOper) {
 
 	$("cbxReqOpeCtrl").attr('disabled', 'disabled');
 
-	if (data[0].Ctrl == "PMO3") {
-
-
+	$("#txtReqExtCentro").prop("readonly", false);
+	$("#txtReqExtPuesto").prop("readonly", false);
+	if (data[0].Ctrl == "PM03") {
 
 		$("#hiddExtCodOperacion").val(codOper)
 		$("#hidReqExtCodigo").val(data[0].Codigo)
 		$("#hiddExtOpeCtrl").val(data[0].Ctrl)
-		$("#hiddExtClaMod").val(data[0].Modelo)
-		$("#hiddExtDesClaMod").val(data[0].DModelo)
-		$("#hidReqExtPuesto").val(data[0].Puesto)
 
-		$("#txtReqExtOperacion").val(data[0].Operacion)
 		$("#txtReqCodSer").val(data[0].CodServicio)
 		$("#txtReqServicio").val(data[0].DServicio)
+
+		$("#txtExtClaMod").val(data[0].Modelo)
+		$("#txtExtDesClaMod").val(data[0].DModelo)
+
 		$("#txtReqCantidad").val(data[0].Cantidad)
 		$("#txtReqUniMedida").val(data[0].UM)
 		$("#txtReqPrecioRef").val(data[0].Precio)
@@ -1394,121 +1801,49 @@ function editarRepOpeExt(codOper) {
 		$("#txtReqGrArticulo").val(data[0].Articulo)
 		$("#txtReqGrCompras").val(data[0].Compras)
 
+		$("#txtReqExtCentro").val(data[0].Centro)
+		$("#txtReqExtPuesto").val(data[0].Puesto)
+
 		$("#reqOpeExtLen").html("Operación: " + data[0].Codigo)
 		$("#titEditarReqExterno").html('Aviso: ' + codAviso);
+
+		$("#txtReqExtCentro").prop("readonly", true);
+		$("#txtReqExtPuesto").prop("readonly", true);
+
 
 		$.mobile.changePage('#pagEditarReqOpeExterno')
 
 
 	} else {
+
 		//console.log(data[0])
 		$("#cbxReqOpeCtrl").selectmenu("disable")
 		$("#hidReqCodOpe").val(codOper)
 		$("#hidReqCodigo").val(data[0].CodReq)
 		$("#txtReqClaveModelo").val(data[0].Modelo)
 		$("#txtReqDesModelo").val(data[0].DModelo)
-		$("#txtReqPuesto").val(data[0].Puesto)
-		$("#txtReqOperacion").val(data[0].Operacion)
-		$("#cbxReqOpeCtrl").val("PMO1")
+		$("#txtReqCentro").val(data[0].Centro)
+		obtenerCbxPtoTra(data[0].Centro, data[0].Puesto, "OPE")
+		//$("#cbxReqPuesto").val(data[0].Puesto)
+
+		$("#cbxReqOpeCtrl").val("PM01")
 		$("select#cbxReqOpeCtrl").change()
 		$("#txtReqNroPer").val(data[0].Personas)
 		$("#txtReqHoras").val(data[0].Horas)
+		var pers = data[0].Personas
+		var horas = data[0].Horas
+		var trabajo = pers * horas
+		$("#txtReqTrabajo").val((parseFloat(trabajo)).toFixed(2))
+
+		$("#txtReqTrabajo").val()
 
 		$("#titEditarReqOpe").html('Aviso: ' + codAviso);
-		$("#reqOpeLen").html("Operación: " + data[0].Codigo)
+		$("#reqOpeLen").html("N° Operación: " + data[0].Codigo)
 
 		$.mobile.changePage('#pagEditarReqOperacion')
 	}
 
 }
-
-function grabarReqOperacion() {
-
-
-	var codOpe = $("#hidReqCodOpe").val();
-	var codReq = $("#hidReqCodigo").val()
-	var codAviso = $("#txtAvisoCodigo").val()
-
-
-
-	var reqBE = {
-		CodReq: codReq,
-		CodOpe: codOpe,
-		Accion: codOpe == "0" ? "I" : "U",
-		CodAviso: codAviso,
-		Modelo: $("#txtReqClaveModelo").val(),
-		DModelo: $("#txtReqDesModelo").val(),
-		Puesto: $("#txtReqPuesto").val(),
-		Operacion: $("#txtReqOperacion").val(),
-		Ctrl: "PMO1",
-		Personas: $("#txtReqNroPer").val(),
-		Horas: $("#txtReqHoras").val(),
-		CodServicio: "",
-		DServicio: "",
-		Cantidad: "",
-		UM: "",
-		Precio: "",
-		Total: "",
-		Solicitante: "",
-		Articulo: "",
-		Compras: "",
-		ESTADO: "",
-		Cusuario: getLocalStorage("cusuario")
-	}
-
-	if (reqBE.Puesto.trim() == "") {
-		navigator.notification.alert("Ingrese Puestro Trabajo")
-		return
-	}
-
-	if (reqBE.Modelo.trim() == "") {
-		navigator.notification.alert("Ingrese Modelo")
-		return
-	}
-
-	if (reqBE.Operacion.trim() == "") {
-		navigator.notification.alert("Ingrese Operación")
-		return
-	}
-
-	if (reqBE.Personas == "") {
-		navigator.notification.alert("Ingrese Nro de personas")
-		return
-	}
-	if (reqBE.Horas == "") {
-		navigator.notification.alert("Ingrese Nro de horas")
-		return
-	}
-	//console.log(reqBE)
-	$.ajax({
-		url: getIPorHOSTApi() + "MttoChimuAPI/MantAvisoOperacion",
-		type: "post",
-		timeout: 60000,
-		data: reqBE,
-		content: "application/json",
-		beforeSend: function () {
-			$("#cargando").show();
-		},
-		success: function (data) {
-			$("#cargando").hide();
-			if (data.Status == "OK") {
-				$.mobile.changePage('#pagMantRequerimiento')
-				obtenerOpeOperaciones(codAviso)
-			} else {
-				navigator.notification.alert(data.Mensaje)
-			}
-
-		},
-		error: function (jqXHR, exception) {
-			$("#cargando").hide();
-			navigator.notification.alert("Error al registrar los datos de operación " + jqXHR)
-
-
-		}
-	});
-
-}
-
 
 function retornaDataClaMod(checkparametro) {
 	var datpar = checkparametro.value.split(";")
@@ -1519,36 +1854,43 @@ function retornaDataClaMod(checkparametro) {
 }
 
 
-function obtenerOpeClavaModulo(moduloBE) {
-
-}
-
-
 function onchOpeExtCanPre() {
 	var cantidad = $("#txtReqCantidad").val()
 	var precio = $("#txtReqPrecioRef").val()
 	if (cantidad == "") cantidad = 0
 	if (precio == "") cantidad = 0
-	$("#txtReqTotal").val(parseFloat(cantidad) * parseFloat(precio))
+	$("#txtReqTotal").val((parseFloat(cantidad) * parseFloat(precio)).toFixed(2))
 
 }
 
 function grabarReqOpeExterno() {
 
-	var codReq = $("#hidCodReq").val();
-	var codOpe = $("#hiddExtCodOperacion").val()
+	var codReq = $("#hidCodReq").val()
 	var codAviso = $("#txtAvisoCodigo").val()
 
-	var reqBE = {
+	var reqEstado = "CREADO"
+	var accion = codReq == "0" ? "I" : ""
+	var cusuario = getLocalStorage("cusuario")
+
+	var dataAvisoReq = {
 		CodReq: codReq,
+		Accion: accion,
+		CodAviso: codAviso,
+		Estado: reqEstado,
+		Cusuario: cusuario
+	}
+
+	var codOpe = $("#hiddExtCodOperacion").val()
+
+	var reqBE = {
 		CodOpe: codOpe,
 		Accion: codOpe == "0" ? "I" : "U",
 		CodAviso: codAviso,
-		Modelo: $("#hiddExtClaMod").val(),
-		DModelo: $("#hiddExtDesClaMod").val(),
-		Puesto: $("#hidReqExtPuesto").val(),
-		Operacion: $("#txtReqExtOperacion").val(),
-		Ctrl: "PMO3",
+		Modelo: $("#txtExtClaMod").val(),
+		DModelo: $("#txtExtDesClaMod").val(),
+		Puesto: $("#txtReqExtPuesto").val(),
+		Centro: $("#txtReqExtCentro").val(),
+		Ctrl: "PM03",
 		Personas: "",
 		Horas: "",
 		CodServicio: $("#txtReqCodSer").val(),
@@ -1564,8 +1906,8 @@ function grabarReqOpeExterno() {
 		Cusuario: getLocalStorage("cusuario")
 	}
 
-	if (reqBE.Operacion.trim() == "") {
-		navigator.notification.alert("Ingrese operación")
+	if (reqBE.Modelo.trim() == "") {
+		navigator.notification.alert("Ingrese Modelo")
 		return
 	}
 
@@ -1586,35 +1928,84 @@ function grabarReqOpeExterno() {
 		navigator.notification.alert("Ingrese codigo de Solicitante")
 		return
 	}
-	//console.log(reqBE)
-	$.ajax({
-		url: getIPorHOSTApi() + "MttoChimuAPI/MantAvisoOperacion",
-		type: "post",
-		timeout: 60000,
-		data: reqBE,
-		content: "application/json",
-		beforeSend: function () {
-			$("#cargando").show();
-		},
-		success: function (data) {
-			$("#cargando").hide();
-			if (data.Status == "OK") {
-				$.mobile.changePage('#pagMantRequerimiento')
-				obtenerOpeOperaciones(codAviso)
-			} else {
-				navigator.notification.alert(data.Mensaje)
+
+	if (reqBE.Puesto == "") {
+		navigator.notification.alert("Ingrese puesto trabajo")
+		return
+	}
+	if (reqBE.Centro == "") {
+		navigator.notification.alert("Ingrese centro puesto trabajo")
+		return
+	}
+
+
+	if (accion == "I") {
+
+		var IPorHOST = getIPorHOSTApi();
+		var url = IPorHOST + "MttoChimuAPI/MantAvisoRequerimiento";
+		$.ajax({
+			url: url,
+			type: "post",
+			timeout: 60000,
+			data: dataAvisoReq,
+			content: "application/json",
+			beforeSend: function () {
+				$("#cargando").show();
+			},
+			success: function (data) {
+				$("#cargando").hide();
+
+				if (data.Status == "OK") {
+					$("#hidCodReq").val(data.Codigo)
+					$("#hidReqExtCodigo").val(data.Codigo)
+					grabarOperacionExterno(reqBE, codAviso)
+				} else {
+					navigator.notification.alert(data.Mensaje)
+
+				}
+
+			},
+			error: function (jqXHR, exception) {
+				$("#cargando").hide();
+				navigator.notification.alert("Error: no se registro Requerimiento Operaciones " + jqXHR)
 
 			}
+		});
+	}
+	else
+		grabarOperacionExterno(reqBE, codAviso)
 
-		},
-		error: function (jqXHR, exception) {
-			$("#cargando").hide();
-			navigator.notification.alert("Error al registrar los datos de operación " + jqXHR)
 
+}
+function grabarOperacionExterno(reqBE, codAviso) {
 
-		}
-	});
+	var codReq = $("#hidCodReq").val()
+	reqBE.CodReq = codReq;
 
+	if (codReq != "0")
+		$.ajax({
+			url: getIPorHOSTApi() + "MttoChimuAPI/MantAvisoOperacion",
+			type: "post",
+			timeout: 60000,
+			data: reqBE,
+			content: "application/json",
+			beforeSend: function () {
+				$("#cargando").show();
+			},
+			success: function (data) {
+				$("#cargando").hide();
+				if (data.Status == "OK") {
+					$.mobile.changePage('#pagMantRequerimiento')
+					obtenerOpeOperaciones(codAviso)
+				} else {
+					navigator.notification.alert(data.Mensaje)
+				}
+			},
+			error: function (jqXHR, exception) {
+				$("#cargando").hide();
+				navigator.notification.alert("Error al registrar los datos de operación " + jqXHR)
+			}
+		});
 }
 
 function obtenerListaServcios() {
@@ -1624,7 +2015,7 @@ function obtenerListaServcios() {
 		Centro: $("#txtConCentro").val(),
 		Puesto: $("#txtConPuesto").val(),
 		Grupo: $("#cbxAviGrupo").val(),
-		Ubicacion: $("#cbxAviUbicacion").val()
+		//Ubicacion: 
 	};
 	var IPorHOST = getIPorHOSTApi();
 	var url = IPorHOST + "MttoChimuAPI/ListaMateriales";
@@ -1761,10 +2152,10 @@ function obtenerOpeSolicitante(soliBE) {
 
 function eliminarOpeItem(btn) {
 
-	var tds = $(btn).closest("tr")
+	var codOpe = btn.split(";")[0]
+	var OpeCodigo = btn.split(";")[1]
+	var codReq = btn.split(";")[2]
 
-	var codOpe = tds.find("input[name='reqOpeCodOpe']").val()
-	var codReq = tds.find("input[name='reqOpeCodReq']").val()
 	var codAviso = $("#txtAvisoCodigo").val();
 
 	var reqBE = {
@@ -1773,8 +2164,13 @@ function eliminarOpeItem(btn) {
 		Accion: "D"
 	}
 
-	if (registrarReqOpeaciones(reqBE, codAviso))
-		$(btn).closest("tr").remove();
+	navigator.notification.confirm("Esta Seguro de eliminar Operación: " + OpeCodigo, function (buttonIndex) {
+		if (buttonIndex == 1)
+			registrarReqOpeaciones(reqBE, codAviso)
+
+	},)
+
+
 }
 
 function registrarReqOpeaciones(reqBE, codAviso) {
@@ -1817,7 +2213,7 @@ function registrarReqOpeaciones(reqBE, codAviso) {
 }
 
 function obtenerOpeOperaciones(codAviso) {
-
+	alert(codAviso)
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/ListaAvisoOperacion",
 		crossDomain: true,
@@ -1829,6 +2225,7 @@ function obtenerOpeOperaciones(codAviso) {
 			$("#cargando").show();
 		},
 		success: function (data) {
+
 			$("#cargando").hide();
 			listarDataReqOperacion(data)
 
@@ -1842,48 +2239,119 @@ function obtenerOpeOperaciones(codAviso) {
 }
 
 function listarDataReqOperacion(data) {
-	var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
 
-	lstReqOperaciones = []
+	var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
+	var orden = $("#hidAviOM").val()
+
+	lstReqOperaciones = [];
 	lstReqOperaciones = data
+
+	$("#ulAviOpe").html("")
 
 	var html = ""
 	var existe = false;
 	$(data).each(function (i, row) {
-		existe = true;
-		var modVer = "";
 		var eliminar = "";
 		var material = "";
-		if (perUsu.IMODIFICAR == "1")
-			modVer = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-edit ui-btn-icon-notext ui-btn-b ui-mini" onClick="editarRepOpeExt(\'' + row.CodOpe + '\')"></a>'
-		else if (perUsu.ICONSULTAR == "1" && perUsu.IMODIFICAR != "1")
-			modVer = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-eye ui-btn-icon-notext ui-btn-c ui-mini" onClick="editarRepOpeExt(\'' + row.CodOpe + '\')"></a>'
+		material = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-gear ui-btn-icon-notext ui-btn-d ui-mini" onClick="gestionReqMaterial(\'' + row.CodOpe + ";" + row.Codigo + ";" + row.CodReq + '\')"></a>'
 
-		material = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-bars ui-btn-icon-notext ui-btn-d ui-mini" onClick="gestionReqMaterial(\'' + row.CodOpe + ";" + row.Codigo + ";" + row.CodReq + '\')"></a>'
+		if (perUsu.IELIMINAR == "1" && orden == "")
+			eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliminarOpeItem(\'' + row.CodOpe + ";" + row.Codigo + ";" + row.CodReq + '\')"></a>'
 
-		if (perUsu.IELIMINAR == "1")
-			eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliminarOpeItem(this)"></a>'
+		existe = true;
 
-		html = html + '<tr> ' +
-			'<td>' + row.Codigo +
-			'<input type="hidden" name="reqOpeCodOpe" value="' + row.CodOpe + '">' +
-			'<input type="hidden" name="reqOpeCodReq" value="' + row.CodReq + '">' +
-			'</td>' +
-			'<td>' + row.Operacion + '</td>' +
-			'<td>' + row.Ctrl + '</td>' +
-			'<td>' + modVer + "&nbsp;" + material + "&nbsp;" + eliminar + '</td>' +
-			'</tr>';
+		html = html + '<li data-theme="b"> ' +
+			'<p  onclick="editarRepOpeExt(\'' + row.CodOpe + '\')" style="float:right;fon"><strong>' + row.Codigo + '</strong></p>' +
+			' <h2 onclick="editarRepOpeExt(\'' + row.CodOpe + '\')">' + row.DModelo + '</h2> ' +
+			'<div class="ui-grid-a">' +
+			'<div class="ui-block-a" onclick="editarRepOpeExt(\'' + row.CodOpe + '\')"  >' +
+			' <p><strong>' + row.Ctrl + '-' + row.DCtrl + '</strong></p>' +
+			'</div>' +
+			'<div class="ui-block-b">' +
+			' <p style="float:right;">' + material + '&nbsp;&nbsp;' + eliminar + '</p>' +
+			'</div>' +
+			'</div>'
+		'</li>'
 	})
-	if (!existe) {
-		html = html + '<tr><td colspan=4 style="text-align:rigth" >No hay registro...</td></tr>'
-	}
-	$("#tblReqOperacion").find('tbody').empty();
-	$("#tblReqOperacion").find('tbody').append(html);
-	$("#tblReqOperacion").trigger('create')
-	$("#tblReqOperacion").table("refresh");
 
+	if (!existe) {
+		html = html + '<li data-theme="b" >' +
+			'<h2>....</h2><p><strong>...</strong></p>' +
+			'<p style="float:left;">...</p>' +
+			'<p style="float:right;">...</p>' +
+			'<p class="ui-li-aside"><strong>...</strong></p></li>'
+	}
+	$("#ulAviOpe").html(html)
+	$('#ulAviOpe').listview('refresh');
 
 }
+
+function onchaPtoTrabaOpe(obj) {
+	var centro = lstCentros.find(x => x.SITEM == obj.value)
+	if (centro == null) {
+		$("#txtReqCentro").val("")
+		$("#cbxReqPuesto").val("")
+		$("select#cbxReqPuesto").change()
+		navigator.notification.alert("Error, el Pto. centro ingresado no existe")
+
+	}
+	obtenerCbxPtoTra(obj.value, "", "OPE")
+}
+
+function obtenerCbxPtoTra(centro, puesto, tipo) {
+
+	if (centro == null || centro.trim() == "") return
+
+	$.ajax({
+		url: getIPorHOSTApi() + "MttoChimuAPI/ListaPuestos?centro=" + centro,
+		type: "get",
+		timeout: 60000,
+		content: "application/json",
+		beforeSend: function () {
+			$("#cargando").show()
+		},
+		success: function (data) {
+			$("#cargando").hide();
+			llenarCbxPtoTra(data, puesto, tipo)
+		},
+		error: function (jqXHR, exception) {
+			$("#cargando").hide();
+			navigator.notification.alert("Problemas al obtener Tablas Pto Trabajo")
+		}
+	});
+
+}
+function llenarCbxPtoTra(data, puesto, tipo) {
+	var ptos = data.filter(x => x.STABLA == "PUESTO")
+
+	if (tipo == "AVI") {
+
+		$("#cbxAvisoPuesto").empty()
+		//$("#cbxAvisoPuesto").append('<option value="">Seleccione Pto. Trabajo</option>')
+		$(ptos).each(function (index, row) {
+			if (puesto == row.SITEM)
+				$("#cbxAvisoPuesto").append('<option selected value="' + row.SITEM + '">' + row.SITEM + '</option>')
+			else
+				$("#cbxAvisoPuesto").append('<option value="' + row.SITEM + '">' + row.SITEM + '</option>')
+		});
+		$("select#cbxAvisoPuesto").change()
+
+	}
+	else if (tipo == "OPE") {
+		$("#cbxReqPuesto").empty()
+		//$("#cbxReqPuesto").append('<option value="">Seleccione Pto. Trabajo</option>')
+		$(ptos).each(function (index, row) {
+			if (puesto == row.SITEM)
+				$("#cbxReqPuesto").append('<option selected value="' + row.SITEM + '">' + row.SITEM + '</option>')
+			else
+				$("#cbxReqPuesto").append('<option value="' + row.SITEM + '">' + row.SITEM + '</option>')
+		});
+		$("select#cbxReqPuesto").change()
+	}
+}
+
+
+
 
 var lstReqMateriales = []
 function gestionReqMaterial(parametros) {
@@ -1938,8 +2406,6 @@ function mantReqMaterial(codOpeMat) {
 	var codReq = $("#hidReqMatCodReq").val()
 	var codigoOpe = $("#hidReqMatCodigo").val()
 
-	var centro = $("#hidAvisoCentroSU").val()
-
 	$("#titEditarReqMat").html("Operación:" + codigoOpe)
 
 	if (codOpeMat == "0") {
@@ -1952,7 +2418,7 @@ function mantReqMaterial(codOpeMat) {
 		$("#txtMatUniMed").val("")
 		$("#txtMatCantidad").val("")
 		$("#txtMatLote").val("L")
-		$("#txtMatCentro").val(equipoUbi.Centro)
+		$("#txtMatCentro").val(equipoUbi.CentroSU)
 		$("#txtMatAlmacen").val(equipoUbi.Almacen)
 
 		$("#postMat").html("Material ")
@@ -2000,6 +2466,7 @@ function verPagMateriales() {
 
 
 }
+
 function verificarMaterial(dataInput) {
 
 	if ($("#txtMatCodigo").val() != "") {
@@ -2206,10 +2673,13 @@ function addReqMaterial() {
 }
 
 function eliminarMatItem(btn) {
+
+
 	var tds = $(btn).closest("tr")
 	var codMat = tds.find("input[name='reqMatCodMat']").val()
 	var codOpe = tds.find("input[name='reqMatCodOpe']").val()
 	var codReq = tds.find("input[name='reqMatCodReq']").val()
+	var codMateial = tds.find("input[name='reqMatCodigo']").val()
 
 	var reqBE = {
 		CodMat: codMat,
@@ -2218,8 +2688,15 @@ function eliminarMatItem(btn) {
 		Accion: "D"
 	}
 
-	if (registraReqMaterial(reqBE, codOpe, codReq))
-		$(btn).closest("tr").remove();
+	navigator.notification.confirm("Esta Seguro de eliminar Material: " + codMateial, function (buttonIndex) {
+
+		if (buttonIndex == 1) {
+			if (registraReqMaterial(reqBE, codOpe, codReq))
+				$(btn).closest("tr").remove();
+		}
+	},)
+
+
 
 }
 
@@ -2257,8 +2734,9 @@ function registraReqMaterial(reqBE, codOpe, codReq) {
 }
 
 function listarDataReqMateriales(data) {
-	var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
 
+	var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
+	var orden = $("#hidAviOM").val()
 	lstReqMateriales = []
 	lstReqMateriales = data
 
@@ -2268,17 +2746,20 @@ function listarDataReqMateriales(data) {
 		existe = true;
 		var modver = ""
 		var eliminar = ""
-		if (perUsu.IMODIFICAR == "1")
+		//console.log(perUsu.ICONSULTAR, perUsu.IMODIFICAR)
+		if (perUsu.IMODIFICAR == "1" && orden == "")
 			modver = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-edit ui-btn-icon-notext ui-btn-b ui-mini" onClick="mantReqMaterial(\'' + row.CodMat + '\')"></a>'
-		else if (perUsu.ICONSULTAR == "1" && perUsu.IMODIFICAR != "1")
+
+		else if (perUsu.ICONSULTAR == "1" && (perUsu.IMODIFICAR != "1" || perUsu.IMODIFICAR == "1"))
 			modver = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-eye ui-btn-icon-notext ui-btn-c ui-mini" onClick="mantReqMaterial(\'' + row.CodMat + '\')"></a>'
 
-		if (perUsu.IELIMINAR == "1")
+		if (perUsu.IELIMINAR == "1" && orden == "")
 			eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliminarMatItem(this)"></a>'
 
 		var almacen = row.Almacen == null ? "" : row.Almacen;
 		html = html + '<tr> ' +
 			'<td>' + row.CodMaterial +
+			'<input type="hidden" name="reqMatCodigo" value="' + row.CodMaterial + '">' +
 			'<input type="hidden" name="reqMatCodMat" value="' + row.CodMat + '">' +
 			'<input type="hidden" name="reqMatCodOpe" value="' + row.CodOpe + '">' +
 			'<input type="hidden" name="reqMatCodReq" value="' + row.CodReq + '">' +
@@ -2286,9 +2767,9 @@ function listarDataReqMateriales(data) {
 			'<td>' + row.DesMaterial + '</td>' +
 			'<td>' + row.UM + '</td>' +
 			'<td>' + row.Cantidad + '</td>' +
-			'<td>' + row.Lote + '</td>' +
 			'<td>' + row.Centro + '</td>' +
 			'<td>' + almacen + '</td>' +
+			'<td>' + row.Lote + '</td>' +
 			'<td>' + modver + "&nbsp;" + eliminar + '</td>' +
 			'</tr>';
 

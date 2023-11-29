@@ -274,7 +274,7 @@ select option {
   z-index: 1;
   margin: auto;
   overflow: auto;
-  height: 350px;
+  height: 450px;
 }
 
 
@@ -301,3 +301,21 @@ select option {
   position: sticky;
   top: 0;
 } 
+/*   login img  imagen eye */
+
+
+.hidden-wrapper .ui-input-text {
+	width: 100% !important;
+	display: inline-block !important;
+}
+.hidden-wrapper .ui-btn {
+	margin-left: -40px;
+}
+
+.hidden-wrapperAviso .ui-input-text {
+	width: 98% !important;
+	display: inline-block !important;
+}
+.hidden-wrapperAviso  .ui-btn {
+	margin-left: -45px;
+}

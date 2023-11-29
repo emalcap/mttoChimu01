@@ -80,7 +80,6 @@
             Inicio();
         }
 
-
         document.addEventListener('backbutton', onBackKeyDown, false);
 
         function onBackKeyDown(event) {
@@ -96,7 +95,6 @@
                 return false;
             }
         }
-
 
         function Inicio() {
             //console.log(navigator.globalization);
@@ -132,10 +130,20 @@
             <h2>Login</h2>
             <form method="post" id="loginForm" autocomplete="off">
                 <label for="password">Usuario:</label>
-                <input class="required" type="text" name="username" id="txtUsuario" placeholder="Usuario">
-                <label for="password">Password:</label>
-                <input class="required" type="password" name="password" id="txtPassword" placeholder="password">
+                <div class="hidden-wrapper">
+                    <input class="required" type="text" name="username" id="txtUsuario" placeholder="Usuario">
+                    <button type="button" id="" data-inline="true"
+                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-user ui-btn-icon-notext ui-btn-d ui-mini"></button>
+                </div>
 
+                <label for="password">Password:</label>
+                <div class="hidden-wrapper">
+                    <input class="required" data-inline="true" type="password" name="password" id="txtPassword"
+                        placeholder="password">
+                    <button type="button" data-inline="true"
+                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-eye ui-btn-icon-notext ui-btn-d ui-mini"
+                        onClick="mostrarContrasena()"></button>
+                </div>
                 <div class="ui-grid-a">
                     <div class="ui-block-a"><input type="button" value="Ingresar" id="btnIngresar"
                             onClick="validarLogin();" data-theme="b"></div>
@@ -155,9 +163,10 @@
 
     <div data-role="panel" id="panelOpc" data-position="left" data-display="overlay" data-theme="d">
         <ul data-role="listview">
-            <li data-icon="home" class=""><a href="#" onClick="$.mobile.changePage('#pagHome')">Home</a></li>
+            <li data-icon="home" class=""><a href="#" onClick="irA('#pagHome')">Home</a></li>
             <li data-role="list-divider" data-theme="b">Mantenimiento</li>
-            <li data-icon="arrow-r" id="menAvisoMant"><a href="#" onClick="gestionAviso()">Gestión de Avisos de Mtto</a>
+            <li data-icon="arrow-r" id="menAvisoMant"><a href="#" onClick="irA('#pagListaAvisos')">Gestión de Avisos de
+                    Mtto</a>
             </li>
             <li data-icon="arrow-r" id="menOrdenMant"><a href="#"
                     onClick="$.mobile.changePage('#pagGestionOrdenMant');">Orden de Mantenimiento</a> </li>
@@ -187,14 +196,14 @@
             <a href="#popupSinServ" id="btnPopupSinc" data-rel="dialog" data-transition="pop"></a>
             <div class="ui-grid-a" style=" text-align:center">
                 <fieldset class="ui-block-b" id="modAvisoMant">
-                    <a href="#" onclick="gestionAviso()" class="btn" data-role="button" data-theme="c"><img
+                    <a href="#" onclick="irA('#pagListaAvisos')" class="btn" data-role="button" data-theme="c"><img
                             src="img/MttoAviso.png" width="60px" height="60px" alt="" title="" />
                     </a>
                     <label for="name">Gestión de Avisos de Mtto </label>
                 </fieldset>
                 <fieldset class="ui-block-b" id="modOrdenMant">
-                    <a href="#" onclick="gestionOM()" class="btn" data-role="button"
-                        data-theme="c"><img src="img/business.png" width="60px" height="60px" alt="" title="" /> </a>
+                    <a href="#" onclick="gestionOM()" class="btn" data-role="button" data-theme="c"><img
+                            src="img/business.png" width="60px" height="60px" alt="" title="" /> </a>
                     <label for="name">Orden de Mantenimiento</label>
                 </fieldset>
 
@@ -257,10 +266,12 @@
             <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
                 data-shadow="false" data-iconshadow="false">Menu</a>
             <h1 id="titTransporte">Listado de Avisos</h1>
+            <a href="#" onclick="verFiltroAviso('B')" data-icon="search" data-iconpos="notext" data-shadow="false"
+                data-iconshadow="false">Opc</a>
         </div>
-        <div data-role="content" data-theme="b" style="padding-bottom:50px">
+        <div data-role="content" data-theme="b">
 
-            <ul data-role="listview" data-inset="true" data-theme="b">
+            <ul data-role="listview" data-inset="true" data-theme="b" id="ulAvisoFiltro">
                 <li data-theme="b">
                     <div class="ui-grid-a">
                         <div class="ui-block-a">
@@ -268,63 +279,40 @@
                                 class="filterable-select"></select>
                         </div>
                     </div>
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a">
+                    <div class="ui-grid">
+                        <div class="ui-block hidden-wrapperAviso">
                             <input type="text" id="txtAviCodUbiTecLis" data-mini="true"
-                                onchange="onchaBusUbiTecList(this)" data-theme="d"
-                                placeholder="Código UT" autocomplete="off" />
-                        </div>
-                        <div class="ui-block-b">
+                                onchange="onchaBusUbiTecList(this)" data-theme="d" placeholder="Código UT"
+                                autocomplete="off" style="text-transform: uppercase"
+                                onkeyup="this.value = this.value.toUpperCase();" />
                             <button type="button" id="btnBusAviso"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-d ui-mini"
                                 onClick="verPaginaUbicaciones('L')"></button>
                         </div>
                     </div>
-                    <!-- <div class="ui-block"> <input type="text" id="txtDesUbiTecLis" data-mini="true"
-                            placeholder="Ubicación Técnica" data-theme="d" autocomplete="off" readonly /></div> -->
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a"><input type="text" id="txtAviAviso" data-mini="true" placeholder="Aviso"
-                                data-theme="d" />
-                        </div>
-                        <div class="ui-block-b">
+                    <div class="ui-grid">
+                        <div class="ui-block hidden-wrapperAviso">
+                            <input type="text" id="txtAviAviso" data-mini="true" placeholder="Aviso" data-theme="d"
+                                autocomplete="off" />
                             <button type="button" id="btnBusAviso"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
-                                onClick="listarGestionAvisos()"></button>
+                                onClick="listarGestionAvisos('C')"></button>
                         </div>
-                    </div>
-                    <div class="ui-block"> <input type="text" id="txtFilter" data-mini="true" placeholder="Busca...."
-                            data-theme="d" autocomplete="off" />
                     </div>
                 </li>
             </ul>
-            <ul data-role="listview" data-inset="true" data-theme="b">
-                <li data-theme="d">
-                    <div class="table-scroll">
-                        <table id="tabAviso" data-role="table" data-mode="columntoggle:none"
-                            class="ui-body-d ui-shadow movie-list ui-responsive">
-                            <thead>
-                                <tr class="ui-bar-d">
-                                    <th>Nro.</th>
-                                    <th>Aviso</th>
-                                    <th>Tipo</th>
-                                    <th>Fecha</th>
-                                    <th>Titulo</th>
-                                    <th>UT</th>
-                                    <th>Equipo</th>
-                                    <th>Grupo</th>
-                                    <th>Centro</th>
-                                    <th>Estado</th>
-                                    <!--<th>Tiene Ope</th>-->
-                                    <th>Opción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabAvisoBody">
-                                <tr>
-                                    <td colspan=11 style="text-align:rigth">No hay registro ...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="ui-block"> <input type="text" id="txtFilAv" data-mini="true" placeholder="Busca...."
+                    data-theme="d" autocomplete="off" />
+            </div>
+            <ul data-role="listview" data-filter="true" data-inset="true" id="ulAvisos" data-input="#txtFilAv"
+                data-theme="d" data-divider-theme="e" data-count-theme="b">
+                <li>
+                    <p style="float:right;"><strong>...</strong></p>
+                    <h2>...</h2>
+                    <p><strong>...</strong></p>
+                    <p style="float:left;">...</p>
+                    <p style="float:right;">...</p>
+
                 </li>
             </ul>
         </div>
@@ -333,10 +321,10 @@
             style="bottom:0;right:0;top:auto !important ;position:absolute !important;width: 100% !important;">
             <div data-role="navbar">
                 <ul>
-                    <li><button type="button" id="btnEditAviso" onClick="editarAviso('')" data-transition="none"
+                    <li><button type="button" id="btnEditAviso" onClick="editarAviso('');" data-transition="none"
                             data-icon="plus" data-iconpos="plus" data-inline="true">Nuevo</button></li>
-                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagHome') " data-transition="none"
-                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    <li><a href="javascript:void(0)" onClick="irA('#pagHome')" data-transition="none" data-icon="back"
+                            data-iconpos="left" data-inline="true">Regresar</a>
                     </li>
 
                 </ul>
@@ -350,31 +338,43 @@
                 data-shadow="false" data-iconshadow="false">Menu</a>
             <h1 id="titEditarAviso">Editar Aviso:</h1>
         </div><!-- /header -->
-        <div data-role="content" data-theme="b" style="padding-bottom:10px">
+        <div data-role="content" data-theme="b">
             <ul data-role="listview" data-inset="true" data-theme="d">
                 <li data-theme="d">
-                    <div class="ui-grid-a">                        
+                    <div class="ui-grid-a">
                         <div class="ui-block-a">
                         </div>
                         <div class="ui-block-b">
-                            <div id="divSupAut" style="float:right;" >
+                            <div id="divSupAut" style="float:right;">
                                 <button id="btnSuptAut" data-icon="check" data-role="button" data-inline="true"
-                                    data-mini="true" data-theme="b" onClick="enviarAutorizacion()"> Autorizar</button>
+                                    data-mini="true" data-theme="b" onClick="enviarAutorizacion()">Poner en
+                                    Tratam.</button>
                             </div>
-                            <p style="float:right;"  id="txtAviDesEstado"></p>
+                            <p style="float:right;" id="txtAviDesEstado"></p>
+
                         </div>
                     </div>
-
+                    <div class="ui-grid-a">
+                        <div class="ui-block-a">
+                        </div>
+                        <div class="ui-block-b">
+                            <p style="float:right;" id="txtAviOM"></p>
+                        </div>
+                    </div>
                     <fieldset class="ui-grid">
                         <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">General</legend>
                         <div class="ui-grid">
                             <div class="ui-block"> <label>Titulo:</label>
                                 <input type="hidden" id="txtAvisoCodigo">
                                 <input type="hidden" id="hidAviEstado">
+                                <input type="hidden" id="hidCentroEM">
+                                <input type="hidden" id="hidCentroSU">
+                                <input type="hidden" id="hidAlmacenSu">
+                                <input type="hidden" id="hidAviOM">
                                 <input type="text" id="txtAvisoTitulo" data-mini="true" placeholder="" value=""
                                     data-theme="d" autocomplete="off" />
                             </div>
-                            <div class="ui-grid"><label>Descripción :</label>
+                            <div class="ui-grid"><label>Circunstancias:</label>
                                 <div id="divDesIni">
                                     <!--  <input type="text" id="txtAvisoDescIni" data-mini="true" data-theme="d"
                                         autocomplete="off" disabled />-->
@@ -394,47 +394,66 @@
                     <fieldset>
                         <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">Objeto Técnico</legend>
 
-                        <div class="ui-grid-a">
-                            <div class="ui-block-a"><label>Ubicación:</label>
-                                <input type="text" id="txtAviCodUbi" onchange="onchaBusUbiTec(this)" data-mini="true"
-                                    placeholder="" value="" data-theme="d" autocomplete="off" />
-                            </div>
-                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
-                                <button type="button" id="btnBusUbiEdit"
-                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
-                                    onClick="verPaginaUbicaciones('E')"></button>
-                            </div>
-                        </div>
                         <div class="ui-grid">
-                            <div class="ui-block"><label>Equipo:</label>
-                                <div id="divcbxAvisoEq">
-                                    <select id="cbxAvisoEq" data-native-menu="false" onchange="onchaEquipo(this)"
-                                        onclick="cargarEventCli()" data-mini="true" data-theme="d"
-                                        class="filterable-select"></select>
-                                    <input type="hidden" id="textFlgCbxEqui">
-                                </div>
-                                <div id="divtxtAvisoEq">
-                                    <input type="text" id="txtAvisoEq" data-mini="true" placeholder="" value=""
-                                        data-theme="d" autocomplete="off" readonly />
+                            <div class="ui-block"><label>Ubicación:</label>
+                                <div class="hidden-wrapperAviso">
+                                    <input type="text" id="txtAviCodUbi" onchange="onchaBusUbiTec(this)"
+                                        data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off"
+                                        onkeyup="this.value = this.value.toUpperCase();"
+                                        style="text-transform: uppercase" />
+                                    <button type="button" id="btnBusUbiEdit"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="verPaginaUbicaciones('E')"></button>
                                 </div>
                             </div>
-                        </div>
+                            <div class="ui-grid">
+                                <div class="ui-block"><label>Equipo:</label>
+                                    <div class="hidden-wrapperAviso">
+                                        <input type="text" id="txtAvisoEqu" data-mini="true" placeholder="" value=""
+                                            data-theme="d" autocomplete="off" onchange="onchanEquiBusUbi()"
+                                            onkeyup="this.value = this.value.toUpperCase();"
+                                            style="text-transform: uppercase" />
+                                        <button type="button" id="btnBusEqui"
+                                            class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                            onClick="mostrarPagEquiUbi()"></button>
+                                    </div>
+                                </div>
+                            </div>
                     </fieldset>
                     <hr>
                     <fieldset>
                         <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">Responsable de
                             Mantenimiento
                         </legend>
-                        <div class="ui-grid"> <label>Puesto:</label>
-                            <input type="text" id="txtAvisoPuesto" data-mini="true" placeholder="" value=""
-                                data-theme="d" autocomplete="off" />
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a">
+                                <div class="hidden-wrapperAviso">
+                                    <label>Centro PT:</label>
+                                    <input type="hidden" id="hidFlgAviCentroPT" />
+                                    <input type="text" id="txtAvisoCentroPT" data-mini="true" placeholder="" value=""
+                                        data-theme="d" autocomplete="off" onchange="onchaObtPuestoAvi(this)" />
+                                    <button type="button" id="btnBusPtoCentro"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="pagPtoCentro('AVI')"></button>
+                                </div>
+                            </div>
+                            <div class="ui-block-b">
+                                <div style="margin-top:2.6px;">
+                                    <label>Puesto Trabajo:</label>
+                                    <input type="hidden" id="hidFlgAvisoPuesto" />
+                                    <select id="cbxAvisoPuesto" data-native-menu="false" data-mini="true" data-theme="d"
+                                        class="filterable-select"></select>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="ui-grid-a">
-                            <div class="ui-block-a"> <label>Grupo:</label>
+                            <div class="ui-block-a"> <label>Grupo PL:</label>
                                 <select id="cbxAvisoGr" data-native-menu="false" data-mini="true" data-theme="d"
                                     class="filterable-select"></select>
                             </div>
                             <div class="ui-block-b"> <label>Centro PL:</label>
+                                <input type="hidden" id="hidFlgAviCentroPL" />
                                 <input type="text" id="txtAvisoCentroPL" data-mini="true" placeholder="" value=""
                                     data-theme="d" autocomplete="off" />
                             </div>
@@ -457,7 +476,7 @@
                         <div class="ui-grid-a">
                             <div class="ui-block-a"><label>Fecha Deseada:</label>
                                 <input type="date" id="dateAvisoDesea" data-mini="true" placeholder="Fecha Entrega"
-                                    value="2012-3-23" data-theme="d" />
+                                    value="" data-theme="d" />
                             </div>
                             <div class="ui-block-b">
                                 <label>Parada:</label>
@@ -482,8 +501,8 @@
                             data-transition="none" data-icon="action" data-iconpos="left"
                             data-inline="true">Requerimiento</button>
                     </li>
-                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagListaAvisos') "
-                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    <li><a href="javascript:void(0)" onClick="irA('#pagListaAvisos') " data-transition="none"
+                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
                     </li>
                 </ul>
             </div>
@@ -499,16 +518,16 @@
                 <li data-theme="d">
                     <div class="ui-grid">
                         <div class="ui-block"><input type="text" id="txtBusAviUbiTec" data-theme="d" data-mini="true"
-                                placeholder="Busca Ubicacion" />
+                                placeholder="Busca Ubicacion" autocomplete="off" style="text-transform: uppercase"
+                                onkeyup="this.value = this.value.toUpperCase();" />
                         </div>
                     </div>
                     <input type="hidden" id="hidAviUbiTecOpc" data-mini="true" />
                     <br>
                     <div class="table-scroll">
                         <fieldset>
-                            <table id="tblAviUbiTecnica" data-role="table" data-mode="columntoggle:none"   
-                            data-column-btn-theme="e"
-                                class="ui-body-d ui-shadow movie-list ui-responsive">
+                            <table id="tblAviUbiTecnica" data-role="table" data-mode="columntoggle:none"
+                                data-column-btn-theme="e" class="ui-body-d ui-shadow movie-list ui-responsive">
                                 <thead>
                                     <tr class="ui-bar-d">
                                         <th>Código</th>
@@ -529,8 +548,116 @@
         <div data-role="footer" data-theme="b" data-position="fixed">
             <div data-role="navbar">
                 <ul>
-                    <li><a href="javascript:void(0)" onClick="retornaPapOpc() " data-transition="none" data-icon="back"
+                    <li><a href="javascript:void(0)" onClick="retornaPagOpc() " data-transition="none" data-icon="back"
                             data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagAviSelEquipo" data-theme="b">
+        <div data-role="header" class="header">
+            <h1 id="titUbiEqui">Lista de Equipos</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid">
+                        <div class="ui-block"><label>Ubicacion:</label>
+                            <div class="hidden-wrapperAviso">
+                                <input type="text" id="txtObtenerEquiUbi" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" onkeyup="this.value = this.value.toUpperCase();"
+                                    style="text-transform: uppercase" />
+                                <button type="button" id="btnObtenerEquiUbi"
+                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                    onClick="obteneEquiposUbi()"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ui-grid">
+                        <div class="ui-block"><input type="text" id="txtBusEquipo" data-theme="d" data-mini="true"
+                                placeholder="Busca Equipo" autocomplete="off" style="text-transform: uppercase"
+                                onkeyup="this.value = this.value.toUpperCase();" />
+                        </div>
+                    </div>
+                    <br>
+                    <div class="table-scroll">
+                        <fieldset>
+                            <table id="tblAviEquipos" data-role="table" data-mode="columntoggle:none"
+                                data-column-btn-theme="e" class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Equipo</th>
+                                        <th>Ubicación</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblbusEquiBody">
+                                    <tr>
+                                        <td colspan=2 style="text-align:rigth">No hay registros ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagEditarAviso')"
+                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div data-role="page" id="pagPtoCentro" data-theme="b">
+        <div data-role="header" class="header">
+            <h1 id="titSelReqmat">Lista de Pto. Centros</h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="b" style="padding-bottom:5px">
+            <ul data-role="listview" data-inset="true" data-theme="b">
+                <li data-theme="d">
+                    <div class="ui-grid">
+                        <div class="ui-block">
+                            <input type="text" id="txtBusPtoCentro" data-theme="d" data-mini="true"
+                                placeholder="Busca Pto. Centro" autocomplete="off" style="text-transform: uppercase"
+                                onkeyup="this.value = this.value.toUpperCase();" />
+                        </div>
+                    </div>
+                    <input type="hidden" id="hidOpcPagPtoCentro">
+                    <br>
+                    <div class="table-scroll">
+                        <fieldset>
+                            <table id="tblPtoCentro" data-role="table" data-mode="columntoggle:none"
+                                data-column-btn-theme="e" class="ui-body-d ui-shadow movie-list ui-responsive">
+                                <thead>
+                                    <tr class="ui-bar-d">
+                                        <th>Código</th>
+                                        <th>Centro</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblPtoCentroBody">
+                                    <tr>
+                                        <td colspan=2 style="text-align:rigth">No hay registros ...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </fieldset>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- footer -->
+        <div data-role="footer" data-theme="b" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="javascript:void(0)" onClick="pagPtoCentroRetorno() " data-transition="none"
+                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
                     </li>
                 </ul>
             </div>
@@ -543,62 +670,37 @@
                 data-shadow="false" data-iconshadow="false">Menu</a>
             <h1 id="titEditarReq">Requerimiento Aviso:</h1>
         </div><!-- /header -->
-        <div data-role="content" data-theme="b" style="padding-bottom:10px">
-            <ul data-role="listview" data-inset="true" data-theme="d">
+
+        <div data-role="content" data-theme="b">
+            <ul data-role="listview" data-inset="true" data-theme="b" id="ulReq">
                 <li data-theme="d">
-                    <div class="ui-grid-a" id="divSupGenOM">                        
+                    <input type="hidden" id="hidCodReq">
+                    <input type="hidden" id="txtReqEstado">
+                    <div class="ui-grid-a" id="divSupGenOM">
                         <div class="ui-block-a">
                         </div>
                         <div class="ui-block-b">
                             <div style="float:right;">
-                            <button id="btnSuptGenOM" 
-                            data-icon="check" data-role="button" data-inline="true"
-                                data-mini="true" data-theme="b" onClick="generarOM()">Generar OM</button>
+                                <button id="btnSuptGenOM" data-icon="check" data-role="button" data-inline="true"
+                                    data-mini="true" data-theme="b" onClick="generarOM()">Generar OM</button>
                             </div>
                         </div>
                     </div>
-                    <fieldset>
-                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold">Requerimiento</legend>
-                        <div class="ui-grid-a">
-                            <div class="ui-block"> <label>Descripcion</label>
-                                <input type="hidden" id="hidCodReq">
-                                <input type="hidden" id="txtReqEstado">
-                                <input type="text" id="txtReqDescripcion" data-mini="true" placeholder="" value=""
-                                    data-theme="d" autocomplete="off" />
-                            </div>
-                        </div>
-                        <!-- <div class="ui-grid-a">
-                            <div class="ui-block-a"> <label>Estado</label>
-                                <input type="text" id="txtReqEstado" data-mini="true" placeholder="" value=""
-                                    data-theme="d" autocomplete="off" />
-                            </div>
-                        </div>
-                        -->
-                    </fieldset>
-                </li>
-            </ul>
-            <ul data-role="listview" data-inset="true" data-theme="b">
-                <li data-theme="d">
-                    <div class="table-scroll">
+                    <div>
                         <fieldset>
                             <legend id="legAproSuper" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
                                 Operaciones</legend>
-                            <table id="tblReqOperacion" data-role="table" data-mode="columntoggle:none"                          
-                                class="ui-body-d ui-shadow movie-list ui-responsive">
-                                <thead>
-                                    <tr class="ui-bar-d">
-                                        <th>Pos</th>
-                                        <th>Operación</th>
-                                        <th>Clave Ctrl</th>
-                                        <th>Opc</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan=4 style="text-align:rigth">No hay ningun registro ...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <input type="hidden" id="hidNroAviOpe">
+                            <ul data-role="listview" data-inset="true" id="ulAviOpe" data-theme="d"
+                                data-divider-theme="e" data-count-theme="b">
+                                <li>
+                                    <p style="float:right;"><strong>...</strong></p>
+                                    <h2>...</h2>
+                                    <p><strong>...</strong></p>
+                                    <p style="float:left;">...</p>
+                                    <p style="float:right;">...</p>
+                                </li>
+                            </ul>
                         </fieldset>
                     </div>
                 </li>
@@ -608,9 +710,6 @@
         <div data-role="footer" data-theme="b" data-position="fixed">
             <div data-role="navbar">
                 <ul>
-                    <li><button type="button" id="btnRegOpeMant" onClick="registrarRegOpeMat()" data-transition="none"
-                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
-                    </li>
                     <li><button id="btnNueOpe" onClick="nuevaReqOperacion()" data-transition="none" data-icon="plus"
                             data-iconpos="left" data-inline="true">Agregar Operación</button>
                     </li>
@@ -621,90 +720,8 @@
             </div>
         </div>
     </div>
-
-    <div data-role="page" id="pagAprobSuperTecni" data-theme="b">
-        <div data-role="header" class="header">
-            <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
-                data-shadow="false" data-iconshadow="false">Menu</a>
-            <h1 id="titaprobarAviso">Aprobaciones Aviso:</h1>
-            <input type="hidden" id="codAvisoAprobar">
-        </div><!-- /header -->
-        <div data-role="content" data-theme="b" style="padding-bottom:10px">
-            <ul data-role="listview" data-inset="true" data-theme="d">
-                <li data-theme="d">
-                    <div class="table-scroll">
-                        <fieldset>
-                            <legend id="legAproTec" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
-                                Técnico:</legend>
-                            <table id="tabAproTecnico" data-role="table" data-mode="reflow" data-column-btn-theme="d"
-                                data-column-popup-theme="b" data-column-btn-text="Cols"
-                                class="ui-body-d ui-shadow movie-list ui-responsive">
-                                <thead>
-                                    <tr class="ui-bar-d">
-                                        <th>Nro. Operación</th>
-                                        <th>Clave Modulo</th>
-                                        <th>Operación</th>
-                                        <th>Clave de Ctrl</th>
-                                        <th>Revisión</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabAvisoBody">
-                                    <tr>
-                                        <td colspan=5 style="text-align:rigth">No hay ningun registro ...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </fieldset>
-                    </div>
-                </li>
-            </ul>
-
-            <ul data-role="listview" data-inset="true" data-theme="d">
-                <li data-theme="d">
-                    <div class="table-scroll">
-                        <fieldset>
-                            <legend id="legAproSuper" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
-                                Supervisor:</legend>
-
-                            <table id="tabAproSuper" data-role="table" data-mode="reflow" data-column-btn-theme="d"
-                                data-column-popup-theme="b" data-column-btn-text="Cols"
-                                class="ui-body-d ui-shadow movie-list ui-responsive">
-                                <thead>
-                                    <tr class="ui-bar-d">
-                                        <th>Nro. Operación</th>
-                                        <th>Clave Modelo</th>
-                                        <th>Operación</th>
-                                        <th>Clave de Ctrl</th>
-                                        <th>Revisión</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabAvisoBody">
-                                    <tr>
-                                        <td colspan=5 style="text-align:rigth">No hay ningun registro ...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </fieldset>
-                    </div>
-                </li>
-            </ul>
-        </div>
-        <!-- footer -->
-        <div data-role="footer" data-theme="b" data-position="fixed">
-            <div data-role="navbar">
-                <ul>
-                    <li><a href="javascript:void(0)" onClick="registrarAprobacion()" data-transition="none"
-                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</a>
-                    </li>
-                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagListaAvisos') "
-                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
     <!--  pagEditarReqOperacion -->
+
     <div data-role="page" id="pagEditarReqOperacion" data-theme="b">
         <div data-role="header" class="header">
             <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
@@ -720,52 +737,68 @@
                         <input type="hidden" id="hidReqCodOpe">
                         <input type="hidden" id="hidReqCodigo" />
                         <div class="ui-grid-a">
-                            <div class="ui-block-a"><label>Puesto Trabajo:</label>
-                                <input type="text" id="txtReqPuesto" data-mini="true" data-theme="d"
-                                    autocomplete="off" />
-                            </div>
-                        </div>
-                        <div class="ui-grid-a">
-                            <div class="ui-block-a"><label>Clave Modelo:</label>
-                                <input type="text" id="txtReqClaveModelo" onchange="buscarModeloReq('COD')"
-                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
-                            </div>
-                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
-                                <a href="#"
-                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
-                                    onClick="verPagClaModelo()"></a>
-                            </div>
-                        </div>
-                        <div class="ui-grid">
-                            <div class="ui-block"><label>Descripción Modelo:</label>
-                                <input type="text" id="txtReqDesModelo" data-mini="true" placeholder="" value=""
-                                    data-theme="d" autocomplete="off" />
-                            </div>
-                        </div>
-                        <div class="ui-grid">
-                            <div class="ui-block"> <label>Clave de Ctrl:</label>
+                            <div class="ui-block-a"> <label>Clave de Control:</label>
                                 <select id="cbxReqOpeCtrl" data-native-menu="false" data-mini="true" data-theme="d"
                                     class="filterable-select" onchange="nuevoReqOpeExterno()">
-                                    <option value="PMO1" selected>PMO1</option>
-                                    <option value="PMO3">PMO3</option>
+                                    <option value="PM01" selected>PROPIO</option>
+                                    <option value="PM03">EXTERNO</option>
                                 </select>
                             </div>
                         </div>
-
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a">
+                                <div class="hidden-wrapperAviso">
+                                    <label>Clave Modelo:</label>
+                                    <input type="text" id="txtReqClaveModelo" onchange="buscarModeloReq('COD')"
+                                        data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+                                    <a href="#"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="verPagClaModelo('pro')"></a>
+                                </div>
+                            </div>
+                        </div>
                         <div class="ui-grid">
-                            <div class="ui-block"> <label>Operación:</label>
-                                <input type="text" id="txtReqOperacion" data-mini="true" placeholder="" value=""
-                                    data-theme="d" autocomplete="off" />
-
+                            <div class="ui-block"><label>Descripción de Operación:</label>
+                                <input type="text" id="txtReqDesModelo" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" readonly />
                             </div>
                         </div>
                         <div class="ui-grid-a">
                             <div class="ui-block-a"><label>Nro Personas:</label>
-                                <input type="number" id="txtReqNroPer" data-mini="true" placeholder="" value=""
+                                <input type="number" id="txtReqNroPer" min="0" max="1000"
+                                    onchange="onchanTrabReal(this)" data-mini="true" placeholder="" value=""
                                     data-theme="d" />
                             </div>
-                            <div class="ui-block-b"> <label>Horas:</label> <input type="number" id="txtReqHoras"
-                                    data-mini="true" placeholder="" value="" data-theme="d" />
+                            <div class="ui-block-b"> <label>Duración:</label>
+                                <input type="number" min="1.0" max="10000" id="txtReqHoras"
+                                    onchange="onchanTrabReal(this)" data-mini="true" placeholder="" value=""
+                                    data-theme="d" />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Trabajo:</label>
+                                <input type="number" id="txtReqTrabajo" data-mini="true" data-theme="d"
+                                    autocomplete="off" readonly />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a">
+                                <div class="hidden-wrapperAviso">
+                                    <label>Pto. Centro:</label>
+                                    <input type="text" id="txtReqCentro" data-mini="true" data-theme="d"
+                                        autocomplete="off" onchange="onchaPtoTrabaOpe(this)" />
+                                    <button type="button" id="btnBusEqui"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="pagPtoCentro('OPE')"></button>
+                                </div>
+                            </div>
+                            <div class="ui-block-b">
+
+                                <div style="margin-top:2.5px;">
+                                    <label>Pto. Trabajo :</label>
+                                    <select id="cbxReqPuesto" data-native-menu="false" data-mini="true" data-theme="d"
+                                        class="filterable-select"></select>
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -776,7 +809,7 @@
         <div data-role="footer" data-theme="b" data-position="fixed">
             <div data-role="navbar">
                 <ul>
-                    <li><button type="button" id="btnRegOpe" onClick="grabarReqOperacion()" data-transition="none"
+                    <li><button type="button" id="btnRegOpe" onClick="registrarReqOperacion()" data-transition="none"
                             data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
                     </li>
                     <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagMantRequerimiento') "
@@ -790,17 +823,17 @@
     <!--  pagReqSelClaMod  -->
     <div data-role="page" id="pagReqSelClaMod" data-theme="b">
         <div data-role="header" class="header">
-
             <h1 id="titSelReqmat">Lista Modelos</h1>
         </div><!-- /header -->
         <div data-role="content" data-theme="b" style="padding-bottom:5px">
             <ul data-role="listview" data-inset="true" data-theme="b">
                 <li data-theme="d">
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a"><input type="text" id="txtbusClaMod" data-mini="true"
-                                placeholder="Descripción Modelo" data-theme="d" autocomplete="off" />
-                        </div>
-                        <div class="ui-block-b">
+                    <input type="hidden" id="hidTipoRetModelo">
+                    <div class="ui-grid">
+                        <div class="ui-block hidden-wrapperAviso">
+                            <input type="text" id="txtbusClaMod" data-mini="true"
+                                placeholder="Descripción Modelo" data-theme="d" autocomplete="off" />                      
+                      
                             <a href="#"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
                                 onClick="buscarModeloReq('DES')"></a>
@@ -809,7 +842,7 @@
                     <br>
                     <div class="table-scroll">
                         <fieldset>
-                            <table id="tblReqOpeClaMod" data-role="table"  data-mode="columntoggle:none"                               
+                            <table id="tblReqOpeClaMod" data-role="table" data-mode="columntoggle:none"
                                 class="ui-body-d ui-shadow movie-list ui-responsive">
                                 <thead>
                                     <tr class="ui-bar-d">
@@ -853,30 +886,43 @@
                     <fieldset>
                         <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold" id="reqOpeExtLen">
                             Operación</legend>
-                        <div class="ui-grid">
-                            <input type="hidden" id="hiddExtCodOperacion">
-                            <input type="hidden" id="hiddExtOpeCtrl">
-                            <input type="hidden" id="hiddExtClaMod">
-                            <input type="hidden" id="hiddExtDesClaMod">
-                            <input type="hidden" id="hidReqExtCodigo">
-                            <input type="hidden" id="hidReqExtPuesto">
 
-                            <div class="ui-block"> <label>Descripción</label>
-                                <input type="text" id="txtReqExtOperacion" data-mini="true" placeholder="" value=""
-                                    data-theme="d" autocomplete="off" />
-                            </div>
-                        </div><!-- /grid-b -->
+                        <input type="hidden" id="hiddExtCodOperacion">
+                        <input type="hidden" id="hiddExtOpeCtrl">
+                        <input type="hidden" id="hidReqExtCodigo">
+
                         <div class="ui-grid-a">
-                            <div class="ui-block-a"><label>Código Servicio:</label>
+                            <div class="ui-block-a">
+                                <div class="hidden-wrapperAviso">
+                                    <label>Clave Modelo:</label>
+                                    <input type="text" id="txtExtClaMod" onchange="buscarModeloReqExt('COD')"
+                                        data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
 
-                                <input type="text" id="txtReqCodSer" onchange="buscarServicioReq('COD')"
-                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
 
+                                    <a href="#"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="verPagClaModelo('ext')"></a>
+                                </div>
                             </div>
-                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
-                                <a href="#"
-                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
-                                    onClick="$.mobile.changePage('#pagReqOpeSelServ')"></a>
+                        </div>
+                        <div class="ui-grid">
+                            <div class="ui-block"><label>Descripción Operación:</label>
+                                <input type="text" id="txtExtDesClaMod" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" readonly />
+                            </div>
+                        </div>
+
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a">
+                                <div class="hidden-wrapperAviso">
+                                    <label>Código Servicio:</label>
+
+                                    <input type="text" id="txtReqCodSer" onchange="buscarServicioReq('COD')"
+                                        data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+                                    <a href="#"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="$.mobile.changePage('#pagReqOpeSelServ')"></a>
+                                </div>
                             </div>
                         </div>
                         <div class="ui-grid">
@@ -895,42 +941,46 @@
                             </div>
                         </div>
                         <div class="ui-grid-a">
-                            <div class="ui-block-a"><label>Precio Ref:</label>
+                            <div class="ui-block-a">
+                                <label>Precio Ref:</label>
                                 <input type="number" id="txtReqPrecioRef" onchange="onchOpeExtCanPre()" data-mini="true"
                                     placeholder="" value="" data-theme="d" />
                             </div>
                             <div class="ui-block-b"> <label>Total:</label> <input type="number" id="txtReqTotal"
-                                    data-mini="true" placeholder="" value="" data-theme="d" readonly disabled />
+                                    data-mini="true" placeholder="" value="" data-theme="d" readonly />
                             </div>
                         </div>
                         <div class="ui-grid-a">
-                            <div class="ui-block-a"><label>Solicitante:</label>
-                                <input type="text" id="txtReqSolicitante" onchange="buscaSolicitante('COD')"
-                                    data-mini="true" placeholder="" value="Ch-Ingenieri" data-theme="d"
-                                    autocomplete="off" readonly/>
-                            </div>
-                            <div class="ui-block-b"><label>&nbsp;&nbsp;</label>
-                                <!--   <a href="#"
-                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
-                                    onClick="$.mobile.changePage('#pagReqOpeSelSol')"></a>
-                                    -->
-                                <button type="button" id="btnBusSolicitante"
-                                    class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
-                                    onClick="$.mobile.changePage('#pagReqOpeSelSol')"></button>
+                            <div class="ui-block-a">
+                                <div class="hidden-wrapperAviso">
+                                    <label>Solicitante:</label>
+                                    <input type="text" id="txtReqSolicitante" onchange="buscaSolicitante('COD')"
+                                        data-mini="true" placeholder="" value="Ch-Ingenieri" data-theme="d"
+                                        autocomplete="off" readonly />
+                                    <button type="button" id="btnBusSolicitante"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="$.mobile.changePage('#pagReqOpeSelSol')"></button>
+                                </div>
                             </div>
                         </div>
-                        <!-- <div class="ui-grid">
-                            <div class="ui-block"><label>Descripción:</label>
-                                <input type="text" id="txtReqDesSolicitante" data-mini="true" placeholder="" value=""
-                                    data-theme="d" autocomplete="off" disabled="" />
-                            </div>
-                        </div> -->
                         <div class="ui-grid-a">
-                            <div class="ui-block-a"> <label>Artículo:</label> <input type="text" id="txtReqGrArticulo"
-                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+                            <div class="ui-block-a"> <label>Gr. Artículo:</label> <input type="text"
+                                    id="txtReqGrArticulo" data-mini="true" placeholder="" value="" data-theme="d"
+                                    autocomplete="off" readonly />
                             </div>
-                            <div class="ui-block-b"> <label>Compras:</label> <input type="text" id="txtReqGrCompras"
-                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off" />
+                            <div class="ui-block-b"> <label>Gr. Compras:</label> <input type="text" id="txtReqGrCompras"
+                                    data-mini="true" placeholder="" value="" data-theme="d" autocomplete="off"
+                                    readonly />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Pto. Centro:</label>
+                                <input type="text" id="txtReqExtCentro" data-mini="true" data-theme="d"
+                                    autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"><label>Pto. Trabajo :</label>
+                                <input type="text" id="txtReqExtPuesto" data-mini="true" data-theme="d"
+                                    autocomplete="off" />
                             </div>
                         </div>
                     </fieldset>
@@ -944,8 +994,8 @@
                     <li><button type="button" id="btnRegOpeExt" onClick="grabarReqOpeExterno()" data-transition="none"
                             data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
                     </li>
-                    <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagMantRequerimiento') "
-                            data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
+                    <li><a href="javascript:void(0)" onClick="irA('#pagMantRequerimiento')" data-transition="none"
+                            data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
                     </li>
                 </ul>
             </div>
@@ -960,11 +1010,10 @@
         <div data-role="content" data-theme="b" style="padding-bottom:5px">
             <ul data-role="listview" data-inset="true" data-theme="b">
                 <li data-theme="d">
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a"><input type="text" id="txtbusServicio" data-mini="true"
-                                placeholder="Servicio" data-theme="d" autocomplete="off" />
-                        </div>
-                        <div class="ui-block-b">
+                    <div class="ui-grid">
+                        <div class="ui-block hidden-wrapperAviso">
+                            <input type="text" id="txtbusServicio" data-mini="true"
+                                placeholder="Servicio" data-theme="d" autocomplete="off" />                        
                             <a href="#"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
                                 onClick="buscarServicioReq('DET')"></a>
@@ -1014,11 +1063,10 @@
         <div data-role="content" data-theme="b" style="padding-bottom:5px">
             <ul data-role="listview" data-inset="true" data-theme="b">
                 <li data-theme="d">
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a"><input type="text" id="txtbusSolicitante" data-mini="true"
-                                placeholder="Solicitante" data-theme="d" autocomplete="off" />
-                        </div>
-                        <div class="ui-block-b">
+                    <div class="ui-grid">
+                        <div class="ui-block hidden-wrapperAviso">
+                            <input type="text" id="txtbusSolicitante" data-mini="true"
+                                placeholder="Solicitante" data-theme="d" autocomplete="off" />                      
                             <a href="#"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
                                 onClick="buscaSolicitante('DET')"></a>
@@ -1074,7 +1122,7 @@
                         <fieldset>
                             <legend id="legAproSuper" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
                                 Materiales</legend>
-                            <table id="tblReqMaterial" data-role="table" data-mode="columntoggle:none"                          
+                            <table id="tblReqMaterial" data-role="table" data-mode="columntoggle:none"
                                 class="ui-body-d ui-shadow movie-list ui-responsive">
                                 <thead>
                                     <tr class="ui-bar-d">
@@ -1082,9 +1130,9 @@
                                         <th>Material</th>
                                         <th>UM</th>
                                         <th>Cantidad</th>
-                                        <th>Lote</th>
                                         <th>Centro</th>
                                         <th>Almacén</th>
+                                        <th>Lote</th>
                                         <th>Opc</th>
                                     </tr>
                                 </thead>
@@ -1121,12 +1169,11 @@
         <div data-role="content" data-theme="b" style="padding-bottom:5px">
             <ul data-role="listview" data-inset="true" data-theme="b">
                 <li data-theme="d">
-                    <div class="ui-grid-a">
+                    <div class="ui-grid">
                         <input type="hidden" id="hidDatCentro">
-                        <div class="ui-block-a"><input type="text" id="txtbusMaterial" data-mini="true"
-                                placeholder="Descripción material" data-theme="d" autocomplete="off" />
-                        </div>
-                        <div class="ui-block-b">
+                        <div class="ui-block hidden-wrapperAviso">
+                            <input type="text" id="txtbusMaterial" data-mini="true"
+                                placeholder="Descripción material" data-theme="d" autocomplete="off" />                        
                             <a href="#"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
                                 onClick="buscaMaterial('DET')"></a>
@@ -1136,7 +1183,7 @@
 
                     <div class="table-scroll">
                         <fieldset>
-                            <table id="tblReqSelMat" data-role="table"  data-mode="columntoggle:none"
+                            <table id="tblReqSelMat" data-role="table" data-mode="columntoggle:none"
                                 class="ui-body-d ui-shadow movie-list ui-responsive">
                                 <thead>
                                     <tr class="ui-bar-d">
@@ -1229,7 +1276,7 @@
                         <div class="ui-grid-a">
                             <div class="ui-block-a"> <label>Lote:</label>
                                 <input type="text" id="txtMatLote" data-mini="true" placeholder="" value=""
-                                    data-theme="d" readonly/>
+                                    data-theme="d" readonly />
                             </div>
                         </div>
                     </fieldset>
@@ -1256,11 +1303,13 @@
         <div data-role="header" class="header">
             <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
                 data-shadow="false" data-iconshadow="false">Menu</a>
-            <h1 id="titTransporte">Listado de OM</h1>
+            <h1 id="titTransporte">Listado de Avisos - OM</h1>
+            <a href="#" onclick="verFiltroOM('B')" data-icon="search" data-iconpos="notext" data-shadow="false"
+                data-iconshadow="false">Opc</a>
         </div>
         <div data-role="content" data-theme="b" style="padding-bottom:50px">
 
-            <ul data-role="listview" data-inset="true" data-theme="b">
+            <ul data-role="listview" data-inset="true" data-theme="b" id="ulAvisoOMFiltro">
                 <li data-theme="b">
                     <div class="ui-grid-a">
                         <div class="ui-block-a">
@@ -1268,66 +1317,50 @@
                                 class="filterable-select"></select>
                         </div>
                     </div>
-                    <div class="ui-grid-a">
-                        <div class="ui-block-a">
-                            <input type="text" id="txtUbiTecLisOM" data-mini="true"
-                                placeholder="Código UT" data-theme="d"
+                    <div class="ui-grid">
+                        <div class="ui-block hidden-wrapperAviso">
+                            <input type="text" id="txtUbiTecOM" data-mini="true" placeholder="Código UT" data-theme="d"
                                 autocomplete="off" />
-                        </div>
-                        <div class="ui-block-b">
                             <button type="button" id="btnBusAviso"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-d ui-mini"
                                 onClick="verPaginaUbicaciones('OM')"></button>
                         </div>
-                    </div>                   
+                    </div>
                     <div class="ui-grid-a">
-                        <div class="ui-block-a"><input type="text" id="txtReqOM" data-mini="true" placeholder="OM"
+                        <div class="ui-block hidden-wrapperAviso">
+                            
+                            <input type="text" id="txtAviReqOM" data-mini="true" placeholder="codigo Aviso"
                                 data-theme="d" autocomplete="off" />
-                        </div>
-                        <div class="ui-block-b">
-                            <button type="button" id="btnBusAviso"
+                            <button type="button" id="btnBusAvisoOM"
                                 class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
                                 onClick="listarGestionOM()"></button>
                         </div>
                     </div>
-                    <div class="ui-block"> <input type="text" id="txtFilter" data-mini="true" placeholder="Busca...."
-                            data-theme="d" autocomplete="off" />
-                    </div>
                 </li>
             </ul>
-            <ul data-role="listview" data-inset="true" data-theme="b">
-                <li data-theme="d">
-                    <div class="table-scroll">
-                        <table id="tabLstOM" data-role="table"
-                            class="ui-body-d ui-shadow movie-list ui-responsive">
-                            <thead>
-                                <tr class="ui-bar-d">
-                                    <th>OM</th>
-                                    <th>Título</th>
-                                    <th>CLA</th>
-                                    <th>ACT</th>
-                                    <th>UT</th>                               
-                                    <th>Equipo</th>                              
-                                    <th>Opción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabAvisoBody">
-                                <tr>
-                                    <td colspan=7 style="text-align:rigth">No hay registros ...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="ui-block"> <input type="text" id="txtFilAviOM" data-mini="true" placeholder="Busca...."
+                    data-theme="d" autocomplete="off" />
+            </div>
+            <ul data-role="listview" data-filter="true" data-inset="true" id="ulAvisosOM" data-input="#txtFilAviOM"
+                data-theme="d" data-divider-theme="e" data-count-theme="b">
+                <li>
+                    <p style="float:right;"><strong>...</strong></p>
+                    <h2>...</h2>
+                    <p><strong>...</strong></p>
+                    <p style="float:left;">...</p>
+                    <p style="float:right;">...</p>
+
                 </li>
             </ul>
+
         </div>
         <!-- footer data-position="fixed"-->
         <div data-role="footer" data-theme="b"
             style="bottom:0;right:0;top:auto !important ;position:absolute !important;width: 100% !important;">
             <div data-role="navbar">
                 <ul>
-                    <li><button type="button" id="btn" onClick="" data-transition="none"
-                            data-icon="plus" data-iconpos="plus" data-inline="true">Nuevo</button></li>
+                    <li><button type="button" id="btn" onClick="" data-transition="none" data-icon="plus"
+                            data-iconpos="plus" data-inline="true">Nuevo</button></li>
                     <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagHome') " data-transition="none"
                             data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
                     </li>
@@ -1336,47 +1369,53 @@
             </div><!-- /navbar -->
         </div><!-- /footer -->
     </div>
-      
-    <div data-role="page" id="pagListaOpeOM" data-theme="b">
+
+    <div data-role="page" id="pagEditarOM" data-theme="b">
         <div data-role="header" class="header">
             <a href="#panelOpc" onClick="$('#panelOpc').trigger('updatelayout')" data-icon="bars" data-iconpos="notext"
                 data-shadow="false" data-iconshadow="false">Menu</a>
-            <h1 id="titEditarReq">OM:</h1>
+            <h1 id="titEditarAaviOM">Aviso:</h1>
         </div><!-- /header -->
-        <div data-role="content" data-theme="b" style="padding-bottom:10px">           
-            <ul data-role="listview" data-inset="true" data-theme="b">
+        <div data-role="content" data-theme="b" style="padding-bottom:10px">
+            <ul data-role="listview" data-inset="true" data-theme="d">
                 <li data-theme="d">
-                    <div class="table-scroll">
-                        <fieldset>
-                            <legend id="" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
-                                Operaciones</legend>
-                            <table id="tbOpeOM" data-role="table"                         
-                                class="ui-body-d ui-shadow movie-list ui-responsive">
-                                <thead>
-                                    <tr class="ui-bar-d">
-                                        <th>OP</th>
-                                        <th>Descipción</th>
-                                        <th>Clave Ctrl</th>
-                                        <th>Puesto</th>
-                                        <th>Personas</th>
-                                        <th>Total</th>                                        
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan=6 style="text-align:rigth">No hay ningun registros ...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </fieldset>
-                    </div>
+                    <fieldset>
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold" id="lenEditAviOM">OM
+                        </legend>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"> <label>Clave de Control:</label>
+                                <input type="text" id="txtCrtlOM" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Clase:</label>
+                                <input type="text" id="txtClaseOM" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"><label>Clase AC</label>
+                                <input type="text" id="txtCLaseAcOM" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Prioridad:</label>
+                                <input type="text" id="txtPrioOM" data-mini="true" placeholder="" value=""
+                                    data-theme="d" autocomplete="off" readonly />
+                            </div>
+                        </div>
+
+                    </fieldset>
                 </li>
             </ul>
         </div>
         <!-- footer -->
         <div data-role="footer" data-theme="b" data-position="fixed">
             <div data-role="navbar">
-                <ul>                   
+                <ul>
+                    <li><button type="button" id="btnRegAviOM" onClick="registrarAviOM()" data-transition="none"
+                            data-icon="check" data-iconpos="check" data-inline="true">Aceptar</button>
+                    </li>
                     <li><a href="javascript:void(0)" onClick="$.mobile.changePage('#pagGestionOM') "
                             data-transition="none" data-icon="back" data-iconpos="left" data-inline="true">Regresar</a>
                     </li>
@@ -1385,10 +1424,7 @@
         </div>
     </div>
 
-
-
     <!--- Gestion OM   -->
-
 
     <!-- pagConfMattUsu -->
     <div data-role="page" id="pagConfMattUsu" data-theme="b">
@@ -1450,16 +1486,25 @@
                             <legend id="legMttoUsuAsig" style="margin-bottom: 10px;color: darkblue; font-weight: bold">
                             </legend>
                             <input type="hidden" id="hidCusuAsig">
+
                             <div class="ui-grid-a">
-                                <div class="ui-block-a"><label>Centro:</label>
-                                    <input type="text" id="txtMttoUsuCen" data-mini="true" placeholder="" value=""
-                                        data-theme="d" autocomplete="off" />
+                                <div class="ui-block-a hidden-wrapperAviso">
+                                    <label>Pto. Centro:</label>
+                                    <input type="text" id="txtMttoUsuCen" data-mini="true" data-theme="d"
+                                        autocomplete="off" onchange="onchaObtPtoTrabajo(this)" />
+                                    <button type="button" id="btnBusPtoCentro"
+                                        class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"
+                                        onClick="pagPtoCentro('USU')"></button>
                                 </div>
-                                <div class="ui-block-b"><label>Puesto:</label>
-                                    <input type="text" id="txtMttoUsuPue" data-mini="true" placeholder="" value=""
-                                        data-theme="d" autocomplete="off" />
+                                <div class="ui-block-b">
+                                    <div style="margin-top:2.6px;">
+                                        <label>Pto. Trabajo :</label>
+                                        <select id="cbxMttoUsuPue" data-native-menu="false" data-mini="true"
+                                            data-theme="d" class="filterable-select"></select>
+                                    </div>
                                 </div>
                             </div>
+                            <br>
                             <div data-role="navbar">
                                 <ul>
                                     <li><a href="#MttoUsuGP" id="navbarMttoUsuGP" data-ajax="false"
@@ -1469,14 +1514,14 @@
                                     <li><a href="#MttoUsuUT" id="navbarMttoUsuUT" data-ajax="false"
                                             onclick="opcTabMttoUsu('UT')">Ubicación Técnica</a></li>
                                     <li><a href="#MttoUsuTipo" id="navbarttoUsuTipo" data-ajax="false"
-                                            onclick="opcTabMttoUsu('TIPO')">Tipo</a></li>
+                                            onclick="opcTabMttoUsu('TIPO')">Tipo de Aviso</a></li>
 
                                 </ul>
                             </div>
                             <div id="MttoUsuGP" class="ui-body-d ui-content">
                                 <input type="hidden" id="hidNavbarMttoUsu" />
                                 <div class="table-scroll">
-                                    <table id="tblMttoUsuGP" data-role="table"  data-mode="columntoggle:none"                                       
+                                    <table id="tblMttoUsuGP" data-role="table" data-mode="columntoggle:none"
                                         class="ui-body-d ui-shadow movie-list ui-responsive">
                                         <thead>
                                             <tr class="ui-bar-d">
@@ -1494,17 +1539,17 @@
                             </div>
                             <div id="MttoUsuUT" class="ui-body-d ui-content">
                                 <div class="table-scroll">
-                                    <table id="tblMttoUsuUT" data-role="table" data-mode="columntoggle:none"                                       
+                                    <table id="tblMttoUsuUT" data-role="table" data-mode="columntoggle:none"
                                         class="ui-body-d ui-shadow movie-list ui-responsive">
                                         <thead>
                                             <tr class="ui-bar-d">
-                                                <th>Ubicacón Técnica</th>
+                                                <th>Ubicación Técnica</th>
                                                 <th>Opc</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td colspan=2 style="text-align:rigth">No hay registro ...</td>
+                                                <td colspan=2 style="text-align:rigth">No hay registros ...</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1512,7 +1557,7 @@
                             </div>
                             <div id="MttoUsuTipo" class="ui-body-d ui-content">
                                 <div class="table-scroll">
-                                    <table id="tblMttoUsuTip" data-role="table" data-mode="columntoggle:none"                                   
+                                    <table id="tblMttoUsuTip" data-role="table" data-mode="columntoggle:none"
                                         class="ui-body-d ui-shadow movie-list ui-responsive">
                                         <thead>
                                             <tr class="ui-bar-d">
@@ -1551,56 +1596,47 @@
     </div>
     <!-- -->
 
+    <!--  #popup   popup           -->
+    <div data-role="page" id="pagPopIGeneraOM">
+        <div data-role="header" data-theme="b">
+            <h1 id="titDatOM"> OM </h1>
+        </div><!-- /header -->
+        <div data-role="content" data-theme="d">
+            <ul data-role="listview" data-inset="true" data-theme="d">
+                <li data-theme="d">
+                    <fieldset class="ui-grid">
+                        <legend style="margin-bottom: 10px;color: darkblue; font-weight: bold"></legend>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Clase de Orden:</label>
+                                <input type="text" id="txtClaOM" data-mini="true" placeholder="" data-theme="d"
+                                    autocomplete="off" />
+                            </div>
+                            <div class="ui-block-b"><label>Clase AC:</label>
+                                <input type="text" id="txtClaACOM" data-mini="true" placeholder="" data-theme="d"
+                                    autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="ui-grid-a">
+                            <div class="ui-block-a"><label>Prioridad:</label>
+                                <input type="text" id="txtPriOM" data-mini="true" placeholder="" data-theme="d"
+                                    autocomplete="off" />
+                            </div>
 
-  <!--  #popup   popup           -->
-  <div  data-role="page" id="pagPopIGeneraOM">
-    <div data-role="header" data-theme="b">
-        <h1 id="titDatOM">Datos OM</h1>
-    </div><!-- /header -->
+                        </div>
+                    </fieldset>
+                </li>
+            </ul>
 
-    <div data-role="content" data-theme="d">    
-        
-         <ul data-role="listview" data-inset="true" data-theme="d">
-            <li data-theme="d">	     
-                <div class="ui-grid-a">
-                    <div class="ui-block-a"><label>Clase</label>
-                        <input type="text" id="txtClaOM" data-mini="true"
-                            placeholder="" data-theme="d"
-                            autocomplete="off" />
-                    </div>
-                    <div class="ui-block-b"><label>Clase AC</label>
-                        <input type="text" id="txtClaACOM" data-mini="true"
-                        placeholder="" data-theme="d"
-                        autocomplete="off" />
-                    </div> 
-                </div> 
-                <div class="ui-grid-a">
-                    <div class="ui-block-a"><label>Prioridad</label>
-                        <input type="number" id="txtPriOM" data-mini="true"
-                            placeholder="" data-theme="d"
-                            autocomplete="off" />
-                    </div>
-                    
-                </div> 
-            </li>           
-        </ul>
-         <div data-role="collapsible-set" data-content-theme="c" id="msgImprimeHead" style="display:none">
-            <div data-role="collapsible" data-theme="e" data-content-theme="d" id="msgImprime">
-                <h3>Alertas</h3>
-                <p id = "pMsgImprime"></p>
-            </div>
-        </div>
-
-        <fieldset class="ui-grid-a">
-                <div  class="ui-block-a" ><a href="#" data-ajax=false onClick="grabarGenerarOM()" class="btn" data-role="button" id="btnImprimir" data-theme="b" >Aceptar</a></div>                   
+            <fieldset class="ui-grid-a">
+                <div class="ui-block-a"><a href="#" data-ajax=false onClick="grabarGenerarOM()" class="btn"
+                        data-role="button" id="btnImprimir" data-theme="b">Aceptar</a></div>
                 <div class="ui-block-b"><button type="submit" id="" data-icon="back" data-theme="e"
-                    onClick="$.mobile.changePage('#pagMantRequerimiento') ">Salir</button></div>
-        </fieldset>
-        
-    </div><!-- /content -->
-</div>
-<!-- /page popup -->
+                        onClick="$.mobile.changePage('#pagMantRequerimiento') ">Salir</button></div>
+            </fieldset>
 
+        </div><!-- /content -->
+    </div>
+    <!-- /page popup -->
 
 
     <div data-role="page" id="pagConfigurar" data-theme="b">
@@ -1638,6 +1674,12 @@
                         <div class="ui-block-b"><label>Ubicación:</label>
                             <select id="cbxConUbicacion" data-native-menu="false" data-mini="true" data-theme="d"
                                 class="filterable-select"> </select>
+                        </div>
+                    </div><!-- /grid-b -->
+                    <div class="ui-grid-a">
+                        <div class="ui-block-b"> <label>Tipo:</label>
+                            <select id="cbxConTipo" data-native-menu="false" data-mini="true" data-theme="d"
+                                class="filterable-select"></select>
                         </div>
                     </div><!-- /grid-b -->
                 </li>
