@@ -107,7 +107,7 @@ text-align:right;
 	height:32px; 
 	left:50%; 
 	top:50%; 
-	margin-left-16px; 
+	margin-left:-16px; 
 	margin-top:-16px; 
 	z-index:501; 
 	position:absolute;
@@ -267,7 +267,6 @@ select option {
 }
 
 
-
 .table-scroll {
   position: relative;
   width:100%;
@@ -319,3 +318,4 @@ select option {
 .hidden-wrapperAviso  .ui-btn {
 	margin-left: -45px;
 }
+

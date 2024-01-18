@@ -1,5 +1,9 @@
 ﻿//Avisos
 function gestionAviso() {
+
+	//Activa los valores Iniciales
+	$("#hidAvisoInicio").val("N")
+	$("#ulAvisoFiltro").show()
 	$("#btnEditAviso").prop("disabled", true);
 	$("#btnAvisoGrabar").prop("disabled", true);
 	$("#btnMantRequerimiento").prop("disabled", true);
@@ -83,21 +87,24 @@ function maestrosAviso() {
 	});
 	var grupSelec = $("#cbxConGrupo").val()
 	var grupconf = dataLogConUsu.Grupos
+	//console.log(grupconf)
 	if (grupSelec != "")
 		$("#cbxAvisoGr").val(grupSelec)
-	else if (grupconf.length > 0)
-		$("#cbxAvisoGr").val(grupconf.split("|")[0])
+	else if (grupconf != null)
+		if (grupconf.length > 0)
+			$("#cbxAvisoGr").val(grupconf.split("|")[0])
 
 	var ubiSelCong = $("#cbxConUbicacion").val()
 	var ubiConfi = dataLogConUsu.Ubicaciones
 	if (ubiSelCong != "")
 		$("#txtAviCodUbiTecLis").val(ubiSelCong)
-	else if (ubiConfi.length > 0)
-		$("#txtAviCodUbiTecLis").val(ubiConfi.split("|")[0])
+	else if (ubiConfi != null)
+		if (ubiConfi.length > 0)
+			$("#txtAviCodUbiTecLis").val(ubiConfi.split("|")[0])
 
 	$("select#cbxAviGrupo,#cbxAvisoTip,select#cbxAvisoGr").change()
 
-  
+
 
 }
 
@@ -148,16 +155,16 @@ function listarGestionAvisos() {
 			return
 		}
 	}
-	
-		var avisoBE = {
-			CodAviso: $("#txtAviAviso").val(),
-			Centro: $("#txtConCentro").val(), //"3904"
-			Puesto: $("#txtConPuesto").val(),     //'PRY-TECN',
-			Grupo: grupos,    //'C51',
-			Ubicacion: ubicaciones,  //'PC-PI-M-SUL-00001',
-			perfil: dataLogConUsu.Perfil,
-			Tipo: dataLogConUsu.Tipos
-		};
+
+	var avisoBE = {
+		CodAviso: $("#txtAviAviso").val(),
+		Centro: $("#txtConCentro").val(), //"3904"
+		Puesto: $("#txtConPuesto").val(),     //'PRY-TECN',
+		Grupo: grupos,    //'C51',
+		Ubicacion: ubicaciones,  //'PC-PI-M-SUL-00001',
+		perfil: dataLogConUsu.Perfil,
+		Tipo: dataLogConUsu.Tipos
+	};
 
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/ListaAviso",
@@ -183,25 +190,18 @@ function listarGestionAvisos() {
 
 function verFiltroAviso(accion) {
 
-	var lengtF = 98
 	if ($('#ulAvisoFiltro').is(':visible')) {
 		$('#ulAvisoFiltro').hide()
 	} else {
-		lengtF = 118 + $('#ulAvisoFiltro').height()
 		$('#ulAvisoFiltro').show()
 	}
 
-	var content = $(".ui-content").height()
-
-	$("#ulAvisos").height(content - lengtF);
 	if (accion == 'B')
 		$('#txtFilAv').focus();
 
 }
 
 function listarAvisos(data) {
-	//console.log(data.find(x => x.CodAviso == $("#txtAvisoCodigo").val()))
-	//var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
 
 	$("#ulAvisos").html("")
 
@@ -292,9 +292,6 @@ function editarAviso(codigoAviso) {
 	$("#cbxAvisoParada").attr("disabled", false);
 
 	if (codigoAviso == "") {
-
-
-
 
 		$("#txtAvisoDescIni").val("Pendiente")
 		$("#txtAviDesEstado").html("Estado:   <span style='font-size:17px;color: darkblue;'>PENDIENTE</span>")
@@ -546,7 +543,9 @@ function onchaBusUbiTec(txtData) {
 
 function verPaginaUbicaciones(opc) {
 	$("#hidAviUbiTecOpc").val(opc)
+
 	$.mobile.changePage('#pagAviSelUbiTec')
+
 }
 
 function retornaAviUbiTec(checkparametro) {
@@ -814,6 +813,7 @@ function mostrarPagEquiUbi() {
 	}
 
 	$("#txtBusEquipo").val("")
+
 	$.mobile.changePage('#pagAviSelEquipo')
 }
 
@@ -872,10 +872,11 @@ function grabarAviso() {
 		return;
 	}
 
-	if (ubicacion.trim() == "") {
+	/*if (ubicacion.trim() == "") {
 		navigator.notification.alert("Ingrese código de ubicación")
 		return;
 	}
+  */
 	if (centro.trim() == "") {
 		navigator.notification.alert("Ingrese Pto. Centro")
 		return;
@@ -962,9 +963,7 @@ function grabarAviso() {
 				$("#txtAvisoDescIni").val(descripcion)
 				$("#txtAvisoDesc").val("")
 
-				if (AvisoBE.Estado != "1") {
-					$.mobile.changePage('#pagListaAvisos')
-				}
+				$.mobile.changePage('#pagListaAvisos')
 
 				listarGestionAvisos("C")
 			}
@@ -977,44 +976,6 @@ function grabarAviso() {
 
 }
 
-/*
-function listarOpeAprobar(data) {
-
-	var html = ""
-	var existe = false;
-	$(data).each(function (i, row) {
-
-		existe = true;
-		var revSuper = '<input type="checkbox" name="checkAproRevSuper"    />';
-		var revTecnico = '<input type="checkbox" name="checkAproRevSuperTec"  />';
-
-		html = html + '<tr> ' +
-			'<td>' + row.Codigo +
-			'<input type ="hidden" name="aproCodOpe" value="' + row.CodOpe + '">' +
-			'<input type ="hidden" name="aproCodReq" value="' + row.CodReq + '">' +
-			'</td>' +
-			'<td>' + row.Modulo + '</td>' +
-			'<td>' + row.Operacion + '</td>' +
-			'<td>' + row.Ctrl + '</td>' +
-			'<td>' + revSuper + '</td>' +
-			'</tr>';
-	})
-	if (!existe) {
-		html = html + '<tr><td colspan=7 style="text-align:rigth" >No hay registro...</td></tr>'
-	}
-
-	$("#tabAproTecnico").find('tbody').empty();
-	$("#tabAproTecnico").find('tbody').append(html);
-	$("#tabAproTecnico").trigger('create')
-	$("#tabAproTecnico").table("refresh");
-	//
-	$("#tabAproSuper").find('tbody').empty();
-	$("#tabAproSuper").find('tbody').append(html);
-	$("#tabAproSuper").trigger('create')
-	$("#tabAproSuper").table("refresh");
-
-
-}*/
 
 
 var lstReqOperaciones = []
@@ -1035,9 +996,6 @@ function mantAvisoRequerimiento(codAviso) {
 
 	$.mobile.changePage('#pagMantRequerimiento')
 
-	var content = getRealContentHeight()
-	$(".ui-content").height(content - 58)
-	//$("#tblReqOperacion").height(content-58);
 
 }
 
@@ -1235,42 +1193,74 @@ function grabarReqOperacion(reqBE, codAviso) {
 function generarOM() {
 	var contar = 0;
 	contar = $("#hidNroAviOpe").val();
-	/*$("#tblReqOperacion tbody tr").each(function (index, row) {
-		var codOpe = $(row).find("td").find("input[name='reqOpeCodOpe']").val()
-		if (codOpe > 0) contar++;
-	})*/
+
 	if (contar == 0) {
 		navigator.notification.alert("El requeriminto no tiene operaciones")
 		return
 	}
 	$("#titDatOM").html("Aviso: " + $("#txtAvisoCodigo").val())
-	$("#txtClaOM").val("")
-	$("#txtClaACOM").val("")
-	$("#txtPriOM").val("")
+	
+	$("#cbxClaOM,#cbxClaACOM,#cbxPriOM").empty()
+	var lstClasOrd = lstMaestros.filter(x => x.STABLA == "CLASEORDEN")
+	$("#cbxClaOM").append('<option value="">Seleccione Clase</option>')
+	$(lstClasOrd).each(function (index, row) {
+		$("#cbxClaOM").append('<option value="' + row.SITEM + '">' + row.SITEM + "&nbsp;-&nbsp;" + row.DITEM + '</option>')
+	});
 
+	$("#cbxClaACOM").append('<option value="">Seleccione Clase AC</option>')	
+
+	var lstPrio = lstMaestros.filter(x => x.STABLA == "PRIORIDAD")	
+	$("#cbxPriOM").append('<option value="">Seleccione Prioridad</option>')
+	$(lstPrio).each(function (index, row) {
+		$("#cbxPriOM").append('<option value="' + row.SITEM + '">'+ row.DITEM + '</option>')
+	});
+	$("select#cbxClaOM,select#cbxClaACOM,select#cbxPriOM").change()
 
 	$.mobile.changePage('#pagPopIGeneraOM')
 
+	
+$("#txtTituloOM").val($("#txtAvisoTitulo").val())
+
 }
+function onchaCargClaAC(){
+
+	var claOrd = $("#cbxClaOM").val()
+	if (claOrd =="") return ;
+	$("#cbxClaACOM").empty()
+
+	var lstClasAC = lstMaestros.filter(x => x.STABLA == "CLASEACT" && x.SCAMPO ==claOrd )
+	$("#cbxClaACOM").append('<option value="">Seleccione Clase AC</option>')
+	$(lstClasAC).each(function (index, row) {
+		$("#cbxClaACOM").append('<option value="' + row.SITEM + '">' + row.SITEM + "&nbsp;-&nbsp;" + row.DITEM + '</option>')
+	});
+	$("select#cbxClaACOM").change()
+	
+}
+
 
 function grabarGenerarOM() {
 
-	var claOM = $("#txtClaOM").val()
-	var claACOM = $("#txtClaACOM").val()
-	var prio = $("#txtPriOM").val()
+	var claOM = $("#cbxClaOM").val()
+	var claACOM = $("#cbxClaACOM").val()
+	var prio = $("#cbxPriOM").val()
+	var titOM = $("#txtTituloOM").val()
 
-	if (claOM == "") {
-		navigator.notification.alert("Ingrese Clase")
+	if (claOM == "") { 
+		navigator.notification.alert("Seleccione Clase de Orden")
 		return
 	}
 	if (claACOM == "") {
-		navigator.notification.alert("Ingrese Clase AC")
+		navigator.notification.alert("Seleccione Clase AC")
 		return
 	}
 	if (prio == "") {
-		navigator.notification.alert("Ingrese Prioridad")
+		navigator.notification.alert("Seleccione Prioridad")
 		return
 	}
+	if (titOM  =="") {
+		navigator.notification.alert("Ingrese Titulo ")
+		return
+	}	
 
 
 	var codAvi = $("#txtAvisoCodigo").val()
@@ -1281,7 +1271,7 @@ function grabarGenerarOM() {
 	var avisoBE = {
 		CodAviso: dataAviso.CodAviso,
 		Centro: dataAviso.Centro,
-		Titulo: dataAviso.Titulo,
+		Titulo: titOM, //dataAviso.Titulo,
 		Equipo: dataAviso.Equipo,
 		FInicio: dataAviso.FInicio,
 		Grupo: dataAviso.Grupo,
@@ -1547,6 +1537,7 @@ function onchanTrabReal() {
 
 function buscarModeloReq(tipo) {
 
+	$("#txtBusModelo").val("")
 	var moduloBE = {
 		STABLA: "MO",
 		SITEM: "",
@@ -1559,9 +1550,9 @@ function buscarModeloReq(tipo) {
 	}
 	else {
 		if ($("#txtbusClaMod").val().trim() == "") {
-			navigator.notification.alert("Ingresar Descripción Modelo")
-			return
-		}
+			navigator.notification.alert("Ingrese descripción")
+			return 
+		}		
 		moduloBE.DITEM = $("#txtbusClaMod").val()
 	}
 
@@ -1594,9 +1585,17 @@ function buscarModeloReq(tipo) {
 }
 function verPagClaModelo(tipo) {
 	$("#hidTipoRetModelo").val(tipo)
+
 	$.mobile.changePage('#pagReqSelClaMod')
 
 }
+
+function verPagReqOpeSelServ() {
+	$.mobile.changePage('#pagReqOpeSelServ')
+
+}
+
+
 
 function listarModeloReq(data) {
 
@@ -2213,7 +2212,7 @@ function registrarReqOpeaciones(reqBE, codAviso) {
 }
 
 function obtenerOpeOperaciones(codAviso) {
-	alert(codAviso)
+	//alert(codAviso)
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/ListaAvisoOperacion",
 		crossDomain: true,
@@ -2253,7 +2252,7 @@ function listarDataReqOperacion(data) {
 	$(data).each(function (i, row) {
 		var eliminar = "";
 		var material = "";
-		material = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-gear ui-btn-icon-notext ui-btn-d ui-mini" onClick="gestionReqMaterial(\'' + row.CodOpe + ";" + row.Codigo + ";" + row.CodReq + '\')"></a>'
+		material = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-bullets ui-btn-icon-notext ui-btn-d ui-mini" onClick="gestionReqMaterial(\'' + row.CodOpe + ";" + row.Codigo + ";" + row.CodReq + '\')"></a>'
 
 		if (perUsu.IELIMINAR == "1" && orden == "")
 			eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliminarOpeItem(\'' + row.CodOpe + ";" + row.Codigo + ";" + row.CodReq + '\')"></a>'
@@ -2321,6 +2320,7 @@ function obtenerCbxPtoTra(centro, puesto, tipo) {
 	});
 
 }
+
 function llenarCbxPtoTra(data, puesto, tipo) {
 	var ptos = data.filter(x => x.STABLA == "PUESTO")
 
@@ -2348,6 +2348,20 @@ function llenarCbxPtoTra(data, puesto, tipo) {
 		});
 		$("select#cbxReqPuesto").change()
 	}
+
+	else if (tipo == "HH") {
+
+		//var rowIndex = $("#hidHHi").val()
+		//$("#cbxPuestoHHOM_" + rowIndex).empty()
+
+		$(ptos).each(function (index, row) {
+			if (puesto == row.SITEM)
+				$("#cbxPuestoHHOM").append('<option selected value="' + row.SITEM + '">' + row.SITEM + '</option>')
+			else
+				$("#cbxPuestoHHOM").append('<option value="' + row.SITEM + '">' + row.SITEM + '</option>')
+		});
+		$("select#cbxPuestoHHOM").change()
+	}
 }
 
 
@@ -2355,7 +2369,6 @@ function llenarCbxPtoTra(data, puesto, tipo) {
 
 var lstReqMateriales = []
 function gestionReqMaterial(parametros) {
-
 	// lista materiales 
 	var parametro = parametros.split(";")
 
@@ -2363,7 +2376,7 @@ function gestionReqMaterial(parametros) {
 	var codigoOpe = parametro[1]
 	var codReq = parametro[2]
 
-	$.mobile.changePage('#pagReqMaterial')
+	verPagReqMaterial()
 
 	$("#titEditarReqMante").html("Materiales - Ope: " + codigoOpe)
 	$("#hidReqMatCodOperacion").val(codReqOpe)
@@ -2372,6 +2385,12 @@ function gestionReqMaterial(parametros) {
 	$("#hidReqMatCodigo").val(codigoOpe)
 
 	obtenerOpeMateriales(codReq, codReqOpe)
+}
+
+function verPagReqMaterial() {
+
+	$.mobile.changePage('#pagReqMaterial')
+
 }
 
 function obtenerOpeMateriales(codReq, codReqOpe) {
@@ -2409,6 +2428,8 @@ function mantReqMaterial(codOpeMat) {
 	$("#titEditarReqMat").html("Operación:" + codigoOpe)
 
 	if (codOpeMat == "0") {
+		var centro = equipoUbi.CentroSU == undefined || equipoUbi.CentroSU == "" ? 3904 : equipoUbi.CentroSU;
+		var alamcen = equipoUbi.Almacen == undefined || equipoUbi.Almacen == "" ? 1100 : equipoUbi.Almacen;
 
 		$("#txtCodMat").val("")
 		$("#hidMatCodOperacion").val(codReqOpe)
@@ -2418,8 +2439,8 @@ function mantReqMaterial(codOpeMat) {
 		$("#txtMatUniMed").val("")
 		$("#txtMatCantidad").val("")
 		$("#txtMatLote").val("L")
-		$("#txtMatCentro").val(equipoUbi.CentroSU)
-		$("#txtMatAlmacen").val(equipoUbi.Almacen)
+		$("#txtMatCentro").val(centro)
+		$("#txtMatAlmacen").val(alamcen)
 
 		$("#postMat").html("Material ")
 	}
@@ -2485,6 +2506,7 @@ function buscaMaterial(tipo) {
 		$("#txtMatDesc").val("")
 		return
 	}
+	$("#txtBusMaterial").val("")
 
 	var materialBE = {
 		Centro: centro,
@@ -2496,12 +2518,14 @@ function buscaMaterial(tipo) {
 		materialBE.Codigo = $("#txtMatCodigo").val()
 		$("#txtMatCodigo").val("")
 		$("#txtMatDesc").val("")
+		$("#txtMatUniMed").val("")
 	}
 	else {
 		if ($("#txtbusMaterial").val().trim() == "") {
-			navigator.notification.alert("Ingresar Descripción de material")
-			return
+			navigator.notification.alert("Ingrese descripción")
+			return 
 		}
+		else
 		materialBE.Descripcion = $("#txtbusMaterial").val()
 	}
 
@@ -2515,12 +2539,14 @@ function buscaMaterial(tipo) {
 			$("#cargando").show();
 			lstMateriales.length = 0
 		},
-		success: function (data) {
+		success: function (data) {		
 			$("#cargando").hide();
 			if (tipo == "COD") {
 				if (data.length > 0) {
 					$("#txtMatCodigo").val(data[0].Codigo)
 					$("#txtMatDesc").val(data[0].Descripcion)
+					$("#txtMatUniMed").val(data[0].UM)
+					$("#txtMatLote").val(data[0].Lote) 
 				}
 			} else {
 				listarMaterialesOpe(data)
@@ -2715,7 +2741,7 @@ function registraReqMaterial(reqBE, codOpe, codReq) {
 			$("#cargando").hide();
 			if (data.Status == "OK") {
 				obtenerOpeMateriales(codReq, codOpe)
-				$.mobile.changePage('#pagReqMaterial')
+				verPagReqMaterial()
 				return true
 
 			} else {

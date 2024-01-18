@@ -1501,7 +1501,7 @@ div.ui-mobile-viewport {
 	border-width: 0;
 	overflow: visible;
 	overflow-x: hidden;
-	padding: 1em;
+	padding: 0.2em;
 }
 /* Corner styling for dialogs and popups */
 .ui-corner-all > .ui-header:first-child,
@@ -3573,7 +3573,7 @@ fieldset.ui-controlgroup {
 }
 .ui-content .ui-listview-inset,
 .ui-panel-inner > .ui-listview-inset {
-	margin: 1em 0;
+	margin: 1em 0;	
 }
 .ui-collapsible-content > .ui-listview {
 	margin: -.5em -1em;

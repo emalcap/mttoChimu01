@@ -2,7 +2,7 @@
 function getIPorHOSTApi() {
 
 	return "http://webdes.san-fernando.com.pe:8100/"
-	//return "http://localhost:50241/"
+	return "http://localhost:50241/"
 	//return "http://webgsf.san-fernando.com.pe/"//
 
 	var url = getLocalStorage("url");
@@ -41,16 +41,10 @@ function mostrarContrasena() {
 function validarLogin() {
 
 	if ($.trim($("#txtUsuario").val()) == "" || $.trim($("#txtPassword").val()) == "") {
-
-
-		navigator.notification.alert("Ingrese Usuario y/o Password")
-		/*$("<div class='ui-loader ui-overlay-shadow ui-body-e ui-corner-all'><h1>" + $("#valmsj").val() + "</h1></div>").css({ "display": "block", "opacity": 0.96, "top": 180, "font-size": 11 })
-			.appendTo($.mobile.pageContainer)
-			.delay(2500)
-			.fadeOut(100, function () {
-				$(this).remove();
-			});*/
-
+		var mensaje = "Debe ingresar Usuario y Password. <br/>Por favor intentelo nuevamente"
+		$("#divloginmensaje").html(mensaje);
+		$("#divloginmensaje").show();
+		//navigator.notification.alert("Debe ingresar Usuario y Contraseña.\nPor favor intentelo nuevamente.",null, 'Aviso');
 		return;
 	} else {
 		window.localStorage.setItem("usuario", $("#txtUsuario").val());
@@ -91,7 +85,8 @@ function ingresarSistema(usuario, clave) {
 				$.mobile.changePage("#pagHome", { transition: "slideup" });
 
 				configuracionUsuario()
-				limpiarTablas()
+
+				$("#divloginmensaje").html("");
 
 			} else {
 				var mensaje = "Usuario Incorrecto y/o usuario no existe!!";
@@ -188,15 +183,7 @@ function ocultarModulos() {
 
 }
 
-/// permisos perfil Modulo
-/*function permisosModulo(modulo) {
-	var getJSON = localStorage.getItem('PermisosModulo');
-	var lstPermisos = JSON.parse(getJSON)
-	//var permiso = lstPermisos.filter(x => x.SMODULO == modulo);
-	//window.localStorage.setItem("iagregar", permiso[0].IAGREGAR)
-	//window.localStorage.setItem("ieliminar", permiso[0].IELIMINAR)
-	//window.localStorage.setItem("imodificar", permiso[0].IMODIFICAR)
-}*/
+
 var dataLogConUsu = []
 function configuracionUsuario() {
 
@@ -266,7 +253,7 @@ function configuracionUsuario() {
 
 }
 
-var lstMaestros = [],lstCentros= []
+var lstMaestros = [], lstCentros = []
 function registraMaestros(avisoBE) {
 
 	//console.log(avisoBE)
@@ -278,7 +265,7 @@ function registraMaestros(avisoBE) {
 		Ubicaciones: avisoBE.Ubicaciones,
 		Centro: avisoBE.Centro == "" ? "3904" : avisoBE.Centro
 	}
-	 
+
 	$.ajax({
 		url: getIPorHOSTApi() + "MttoChimuAPI/ListaMaestros",
 		type: "post",
@@ -337,6 +324,28 @@ $(document).ready(function () {
 			rows.filter(":contains('" + v + "')").show();
 		});
 	})
+	$("#txtBusModelo").keyup(function () {
+		var rows = $("#tblbusModBody").find("tr").hide();
+		var data = this.value.split(" ");
+		$.each(data, function (i, v) {
+			rows.filter(":contains('" + v + "')").show();
+		});
+	})
+	$("#txtBusMaterial").keyup(function () {
+		var rows = $("#tblbusMatBody").find("tr").hide();
+		var data = this.value.split(" ");
+		$.each(data, function (i, v) {
+			rows.filter(":contains('" + v + "')").show();
+		});
+	})
+	$("#txtBusUTUsu").keyup(function () {
+		var rows = $("#tblUbiTecUsuBody").find("tr").hide();
+		var data = this.value.split(" ");
+		$.each(data, function (i, v) {
+			rows.filter(":contains('" + v + "')").show();
+		});
+	})
+	
 
 
 	$("#tblAviUbiTecnica").delegate("td", "click", function () {
@@ -382,7 +391,7 @@ $(document).ready(function () {
 		var equipo = $('#tblAviEquipos tr').eq(row).find('td:first').text()
 		datosPorEquipoEditAviso(equipo)
 	})
-	
+
 
 	$("#tblReqOpeSelServ").delegate("td", "click", function () {
 		var row = $(this).parent().parent().children().index($(this).parent()) + 1;
@@ -453,33 +462,52 @@ $(document).ready(function () {
 		if (origen == "USU") {
 			//$("#txtBusPtoCentro").val("")
 			$.mobile.changePage('#pagMattUsuAsignacion')
-			$("#txtMttoUsuCen").val(codigo)		
-			llenarCbxPtoTabajoUsu(codigo,"")
+			$("#txtMttoUsuCen").val(codigo)
+			llenarCbxPtoTabajoUsu(codigo, "")
 		}
-		else if(origen == "OPE" ){
+		else if (origen == "OPE") {
 			//$("#txtBusPtoCentro").val("")
 			$.mobile.changePage('#pagEditarReqOperacion')
-			$("#txtReqCentro").val(codigo)			
-			obtenerCbxPtoTra(codigo,"","OPE")
+			$("#txtReqCentro").val(codigo)
+			obtenerCbxPtoTra(codigo, "", "OPE")
 		}
-		else if(origen == "AVI" ){
+		else if (origen == "AVI") {
 			//$("#txtBusPtoCentro").val("")
 			$.mobile.changePage('#pagEditarAviso')
-			$("#txtAvisoCentroPT").val(codigo)			
-			obtenerCbxPtoTra(codigo,"","AVI")			
+			$("#txtAvisoCentroPT").val(codigo)
+			obtenerCbxPtoTra(codigo, "", "AVI")
 		}
+		else if (origen == "HH") {
+			$.mobile.changePage('#pagNotificaHH')
+
+			$("#txtCentroHHOM").val(codigo)
+			obtenerCbxPtoTra(codigo, "", "HH")
+		}
+		else if (origen == "MAT") {
+				$.mobile.changePage('#pagEditarReqMaterial')
+				$("#txtMatCentro").val(codigo)
+			}
+
+		})
+		$("#tblUbiTecConUsu").delegate("td", "click", function () {
+			var row = $(this).parent().parent().children().index($(this).parent()) + 1;
+			var codigo = $('#tblUbiTecConUsu tr').eq(row).find('td:first').text()			 
+			 var index =   $("#hidIndexAsiUT").val()
+			   $("#textCodUbiTec_"+index).val(codigo)
+			 $.mobile.changePage('#pagMattUsuAsignacion')
+
 				
-	})
+		})
 
 })
 
 function listarUbicaciones(datos) {
- 
+
 	$("#cargando").show();
 	var html = ""
 	var existe = false;
 	var data = datos.filter(x => x.STABLA == "UBITEC")
-	
+
 	$(data).each(function (i, row) {
 		existe = true;
 		html = html + '<tr> ' +
@@ -500,22 +528,6 @@ function listarUbicaciones(datos) {
 	//// llenar lstMaestros 
 	lstMaestros = datos
 	$("#cargando").hide();
-
-}
-
-function limpiarTablas(){
- 	//tabla avisos 
-	 
-	 $("#ulAvisos").listview()
-	$("#ulAvisos").html(	
-		'<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
-	)
-	$('#ulAvisos').listview('refresh');
-	//tablas OM
-	$("#ulAvisosOM").html(	
-		'<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
-	)
-	$('#ulAvisosOM').listview('refresh');
 
 }
 
@@ -544,22 +556,28 @@ function ListarPtoCentro(dataCentro) {
 	$("#cargando").hide();
 
 	// 
-	lstCentros= dataCentro;
+	lstCentros = dataCentro;
 }
 
 function pagPtoCentro(opc) {
+
 	$("#hidOpcPagPtoCentro").val(opc)
+
 	$.mobile.changePage('#pagPtoCentro');
 
 }
-function  pagPtoCentroRetorno() {
+function pagPtoCentroRetorno() {
 	var origen = $("#hidOpcPagPtoCentro").val()
 	if (origen == "USU")
-	$.mobile.changePage('#pagMattUsuAsignacion')
+		$.mobile.changePage('#pagMattUsuAsignacion')
 	else if (origen == "OPE")
-	$.mobile.changePage('#pagEditarReqOperacion')
+		$.mobile.changePage('#pagEditarReqOperacion')
 	else if (origen == "AVI")
-	$.mobile.changePage('#pagEditarAviso')
+		$.mobile.changePage('#pagEditarAviso')
+	else if (origen == "HH")
+		$.mobile.changePage('#pagNotificaHH')
+	else if (origen == "MAT")
+		$.mobile.changePage('#pagEditarReqMaterial')
 }
 
 
@@ -571,6 +589,51 @@ $.fn.delayPasteKeyUp = function (fn, ms) {
 	});
 };
 
+
+$(document).on("pagecontainershow", function () {
+	ScaleContentToDevice();
+});
+
+$(window).on("resize orientationchange", function () {
+	ScaleContentToDevice();
+});
+
+function ScaleContentToDevice() {
+	scroll(0, 0);
+	var h1 = $.mobile.getScreenHeight()
+	var content = $.mobile.getScreenHeight() - $(".ui-header").outerHeight() - $(".ui-footer").outerHeight() - $(".ui-content").outerHeight() + $(".ui-content").height();
+
+	$(".ui-content").height(content - 58);
+
+
+	if ($.mobile.activePage == null) return
+
+	var pagActiva = $.mobile.activePage.attr("id")
+	//  pagGestionOM
+	if (pagActiva == "pagHome") {
+		$(".ui-content").height(content);
+	}
+
+	//Una tabla con texto de busqueda
+	if (pagActiva == "pagAviSelUbiTec" || pagActiva == "pagPtoCentro" || pagActiva == "pagReqSelMaterial" ||
+		pagActiva == "pagReqSelClaMod" || pagActiva == "pagReqOpeSelServ" ||pagActiva ==  "pagUbiTecConUsu") {
+		$(".table-scroll").height(content - 150)
+
+	}
+	//Solo una tabla
+	else if (pagActiva == "pagReqMaterial" || pagActiva == "pagConfMattUsu") {
+		$(".table-scroll").height(content - 100)
+	}
+	//Una tabla con filtros y texto de busqueda
+	else if (pagActiva == "pagAviSelEquipo") {
+		$(".table-scroll").height(content - 200)
+	}
+	else if (pagActiva == "pagMattUsuAsignacion") {
+
+		$(".table-scroll").height(content - 280)
+		$("#tabs").height(content - 100)
+	}
+}
 
 function getRealContentHeightBk() {
 
@@ -601,18 +664,33 @@ function getRealContentHeight() {
 }
 
 function irA(pag) {
-	
-	var altoExtra = 0
-	if (pag == "#pagListaAvisos") {
+
+	if (pag == "#pagListaAvisos" && $("#hidAvisoInicio").val() == "S") {
 		gestionAviso()
-	} else if (pag == "#pagHome") {
-		altoExtra = 58
-	}
+	} else if (pag == "pagGestionOM" || $("#hidGestOMInicio").val() == "S")
+		gestionOM()
+
 	$.mobile.changePage(pag)
-	var content = getRealContentHeight() - altoExtra
-	$(".ui-content").height(content);
 }
 
+
+function limpiarTablas() {
+
+	//tabla avisos
+	$("#hidAvisoInicio").val("S")
+	$("#ulAvisos,#ulAvisosOM").listview()
+	$("#ulAvisos").html(
+		'<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
+	)
+
+	//tablas OM
+	$("#hidGestOMInicio").val("S")
+	$("#ulAvisosOM").html(
+		'<li data-theme="b" > <h2>....</h2><p><strong>...</strong></p><p style="float:left;">...</p> <p style="float:right;">...</p><p class="ui-li-aside"><strong>...</strong></p></li>'
+	)
+	$('#ulAvisosOM,#ulAvisos').listview('refresh');
+
+}
 
 //Cerrarsesion()
 function cerrarsesion() {
@@ -624,11 +702,17 @@ function cerrarsesion() {
 	$("#txtUsuario").val("");
 	$("#txtPassword").val("");
 	$("#cargando").hide();
+
 	//$("body").css("background-color","#e8ebec");
 	$.mobile.changePage("#pagLogin", { transition: "slideup" });
+
+	limpiarTablas()
 }
 
 
+function cerrarSistema() {
+	navigator.app.exitApp();
+}
 
 
 

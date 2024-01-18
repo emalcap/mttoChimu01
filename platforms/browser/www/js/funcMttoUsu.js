@@ -28,9 +28,17 @@ function gestionMttoUsuario() {
         }
     });
 
+
+    verPagConfMattUsu()
+
+}
+
+function verPagConfMattUsu() {
+
+    var content = getRealContentHeight() - 10
+    $(".ui-content").height(content);
+    $(".table-scroll").height(content - 45)
     $.mobile.changePage('#pagConfMattUsu')
-
-
 }
 
 function listaMttoUsuario(data) {
@@ -41,7 +49,7 @@ function listaMttoUsuario(data) {
 
     if (dataUsuario.length > 0) {
         var perfil = dataUsuario[0].Perfil
-        $("#confMattUsuPerfil").val(perfil)
+        $("#hidConfMattUsuPerfil").val(perfil)
 
         if (perfil == "MTTO_JEFE") {
             $(data).each(function (i, row) {
@@ -99,6 +107,7 @@ function AsignarOpc(cusuPer) {
     $("#hidAsigCusuario").val(cusuario)
 
     $("#txtMttoUsuCen").val("")
+    $("#hidIndexAsiUT").val("0")
     // obtenere los datos del usuario selecionado MTTOUSU    
     var url = getIPorHOSTApi() + "MttoChimuAPI/Configuracion"
     $.ajax({
@@ -114,7 +123,6 @@ function AsignarOpc(cusuPer) {
         },
         success: function (data) {
             if (data.Centro != "")
-
                 $("#hidCusuAsig").val(data.CUSUARIO)
             $("#txtMttoUsuCen").val(data.Centro)
             llenarCbxPtoTabajoUsu(data.Centro, data.Puesto)
@@ -126,7 +134,7 @@ function AsignarOpc(cusuPer) {
             $("#btnAddMttoUsuAsig").html("Agregar  GP")
             $("#hidNavbarMttoUsu").val("GP")
 
-            var perfil = $("#confMattUsuPerfil").val()
+            var perfil = $("#hidConfMattUsuPerfil").val()
             // MTTO_JEFE GP   //MTTO_PLANER GP UT // MTTO_SUPERV GP UT
             $("#tblMttoUsuGP").find('tbody').empty();
             if (perfil == "MTTO_JEFE" || perfil == "MTTO_PLANER" || perfil == "MTTO_SUPERV")
@@ -140,6 +148,9 @@ function AsignarOpc(cusuPer) {
             listarMttoUsuTipo(data.Tipos)
 
             $("#cargando").hide();
+
+            verpagMattUsuAsignacion()
+
         },
         error: function (jqXHR, exception) {
             $("#cargando").hide();
@@ -147,9 +158,10 @@ function AsignarOpc(cusuPer) {
 
         }
     })
+}
 
-
-
+function verpagMattUsuAsignacion() {
+    $.mobile.changePage('#pagMattUsuAsignacion')
 }
 
 function opcTabMttoUsu(opc) {
@@ -175,11 +187,11 @@ function onchaObtPtoTrabajo(obj) {
 
 function llenarCbxPtoTabajoUsu(centro, puesto) {
     $("#cbxMttoUsuPue").empty()
-    
+
     $.ajax({
-        url: getIPorHOSTApi() + "MttoChimuAPI/ListaPuestos?centro="+centro,
+        url: getIPorHOSTApi() + "MttoChimuAPI/ListaPuestos?centro=" + centro,
         type: "get",
-        timeout: 60000,        
+        timeout: 60000,
         content: "application/json",
         beforeSend: function () {
             $("#cargando").show()
@@ -202,13 +214,10 @@ function llenarCbxPtoTabajoUsu(centro, puesto) {
         }
     });
 
-
-
 }
 
-
-
 function addMttoUsuAsig() {
+
     var tabSelect = $("#hidNavbarMttoUsu").val()
     //var perUsu = lstPerUsu.find(x => x.SMODULO == "GestionAviso")
     //console.log(lstPerUsu)
@@ -218,10 +227,23 @@ function addMttoUsuAsig() {
     if (tabSelect == "GP") {
 
         var lstGrupos = lstMaestros.filter(x => x.STABLA == "GRUPO")
+        //perfi ver grupos
+        var perfil = $("#hidConfMattUsuPerfil").val()
+        var gruConUsu = dataLogConUsu.Grupos.split("|")
+        if (gruConUsu == null)
+            return
         var opts = ""
-        $(lstGrupos).each(function (index, row) {
-            opts = opts == "" ? '<option value="' + row.SITEM + '">' + row.SITEM + '</option>' : opts + '<option value="' + row.SITEM + '">' + row.SITEM + '</option>'
-        });
+        if (perfil == "MTTO_PLANER" || perfil == "MTTO_SUPERV") {
+            $(gruConUsu).each(function (i, valor) {
+                var datGrup = lstGrupos.find(x => x.SITEM == valor)
+                opts = opts == "" ? '<option value="' + datGrup.SITEM + '">' + datGrup.SITEM + '</option>' : opts + '<option value="' + datGrup.SITEM + '">' + datGrup.SITEM + '</option>'
+            })          
+        }
+        else {
+            $(lstGrupos).each(function (index, row) {
+                opts = opts == "" ? '<option value="' + row.SITEM + '">' + row.SITEM + '</option>' : opts + '<option value="' + row.SITEM + '">' + row.SITEM + '</option>'
+            });
+        }
         var cbxGrupo = '<select name = "cbxGrupUsu" data-native-menu="false" data-mini="true" data-theme="d"  class="filterable-select">' +
             '<option value="">Seleccionar Grupo</option>' + opts +
             '</select> '
@@ -238,7 +260,6 @@ function addMttoUsuAsig() {
                 '<td>' + cbxGrupo + '</td>' +
                 '<td>' + eliminar + '</td>'
             '</tr>';
-
             $("#tblMttoUsuGP").find('tbody').append(html);
             $("#tblMttoUsuGP").trigger('create')
             $("#tblMttoUsuGP").table("refresh");
@@ -246,22 +267,31 @@ function addMttoUsuAsig() {
 
     }
     else if (tabSelect == "UT") {
+
         addRow = true
         $("#tblMttoUsuUT tbody tr").each(function (index, row) {
             var dValor = $(row).find("td").find("input[name='textCodUbiTec']").val()
             if (dValor.trim() == "")
                 addRow = false
         });
+
         if (addRow) {
+            var index = parseInt($("#hidIndexAsiUT").val()) + 1;
+            $("#hidIndexAsiUT").val(index)
+
             var eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliMttoUT(this)"></a>'
+            var busUT = '<button type="button" id="' + index + '" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"' +
+                'onClick="verPagUbiTecConUsu()"></button>'
             html = html + '<tr> ' +
-                '<td><input type ="text" name="textCodUbiTec" value="" data-mini="true"  autocomplete="off"></td>' +
-                '<td>' + eliminar + '</td>' +
+                '<td><input type ="text" name="textCodUbiTec" id="textCodUbiTec_'+index + '" value="" data-mini="true" style="text-transform: uppercase"onkeyup="this.value = this.value.toUpperCase();"  autocomplete="off" onchange="onchagValidaUTUsu('+index+')"></td>' +
+                '<td>' + busUT + "&nbsp;&nbsp;" + eliminar + '</td>' +
                 '</tr>';
 
             $("#tblMttoUsuUT").find('tbody').append(html);
             $("#tblMttoUsuUT").trigger('create')
             $("#tblMttoUsuUT").table("refresh");
+
+
         }
     }
     else if (tabSelect == "TIPO") {
@@ -328,7 +358,6 @@ function listarMttoUsuGP(dataGP) {
             '<option value="">Seleccionar</option>' + opts +
             '</select> '
 
-        //$("select#cbxGrupUsu").change()
 
         var eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliMttoGP(this)"></a>'
         html = html + '<tr> ' +
@@ -357,11 +386,17 @@ function listarMttoUsuUT(dataUt) {
     var existe = false;
     $(data).each(function (i, dValor) {
         existe = true;
+        var index = parseInt($("#hidIndexAsiUT").val()) + 1;
+        $("#hidIndexAsiUT").val(index)
+
         var eliminar = '<a href="#" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-delete ui-btn-icon-notext ui-btn-e ui-mini" onClick="eliMttoUT(this)"></a>'
+        var busUT = '<button type="button" id="btnBusUbiEdit" class="ui-shadow ui-btn ui-corner-all ui-btn-inline ui-icon-search ui-btn-icon-notext ui-btn-b ui-mini"' +
+            'disabled/></button>'
         html = html + '<tr> ' +
-            '<td><input type ="text" name="textCodUbiTec" value="' + dValor + '" data-mini="true"  autocomplete="off"></td>' +
+            '<td><input type ="text" name="textCodUbiTec" id="textCodUbiTec_' + index + '" value="' + dValor + '" data-mini="true"  autocomplete="off" onchange="onchagValidaUTUsu('+index+')"></td>' +
             '<td>' + eliminar + '</td>' +
             '</tr>';
+
     })
     if (!existe) {
         html = html + '<tr><td colspan=2 style="text-align:rigth" >No hay registros...</td></tr>'
@@ -417,6 +452,84 @@ function listarMttoUsuTipo(dataTipos) {
     $("#tblMttoUsuTip").table("refresh");
 }
 
+function onchagValidaUTUsu(index) {
+    //var index = $("#hidIndexAsiUT").val()
+    var codUT = $("#textCodUbiTec_" + index).val()
+    var lstConUsuUT = dataLogConUsu.Ubicaciones.split("|")
+    var lstUbi = lstMaestros.filter(x => x.STABLA == "UBITEC")
+
+    var ubicaciones = "";
+    $(lstConUsuUT).each(function (i, valor) {
+
+        $(lstUbi).each(function (index, row) {
+            if (row.SITEM.indexOf(valor) == 0)
+                ubicaciones = ubicaciones == "" ? row.SITEM : ubicaciones + "|" + row.SITEM
+        })
+    })
+    var arrarUbi = ubicaciones.split("|")
+    if (arrarUbi != "" || arrarUbi != null)
+        if (!arrarUbi.includes(codUT)) {
+            $("#textCodUbiTec_" + index).val("")
+            navigator.notification.alert("El Usuario no tiene asignado esta Ubicación")
+        }
+
+}
+
+function verPagUbiTecConUsu() {
+    //perfi ver grupos
+    $("#txtBusUTUsu").val("")
+    var perfil = $("#hidConfMattUsuPerfil").val()
+
+    var lstConUsuUT = dataLogConUsu.Ubicaciones.split("|")
+    var lstUbi = lstMaestros.filter(x => x.STABLA == "UBITEC")
+    
+    var lstUT = [];
+    var ubicaciones = "";
+    $(lstConUsuUT).each(function (i, valor) {
+        $(lstUbi).each(function (index, row) {
+            if (row.SITEM.indexOf(valor) == 0)
+                ubicaciones = ubicaciones == "" ? row.SITEM : ubicaciones + "|" + row.SITEM
+        })
+    })
+    $.mobile.changePage('#pagUbiTecConUsu')
+    var html = ""
+    var existe = false;
+    if (ubicaciones.split("|") == "" || ubicaciones.split("|") == null) {
+        $("#cargando").show();   
+    
+        $(lstUbi).each(function (i, row) {
+            existe = true;
+            html = html + '<tr> ' +
+                '<td>' + row.SITEM + '</td>' +
+                '</tr>';
+        })
+    }
+    else{
+        $("#cargando").show();   
+        lstUT = ubicaciones.split("|")
+        $(lstUT).each(function (i, row) {
+            existe = true;
+            html = html + '<tr> ' +
+                '<td>' + row + '</td>' +
+                '</tr>';
+        })
+    }
+
+    if (!existe) {
+        html = html + '<tr><td colspan=1 style="text-align:rigth" >No hay registros...</td></tr>'
+    }
+
+    $("#tblUbiTecConUsu").find('tbody').empty();
+
+    $("#tblUbiTecConUsu").find('tbody').append(html);
+    $("#tblUbiTecConUsu").trigger('create');
+    $("#tblUbiTecConUsu").table("refresh");
+
+    $("#cargando").hide();
+
+
+}
+
 function regMttoUsuAsig() {
 
     var cusuario = $("#hidAsigCusuario").val()
@@ -429,12 +542,25 @@ function regMttoUsuAsig() {
         var dValor = $(row).find("td").find("select[name='cbxGrupUsu']").val()
 
         if (dValor.trim() != "") {
+
             if (addGrupos == "")
                 addGrupos = dValor;
-            else
-                addGrupos = addGrupos + "|" + dValor;
+            else {
+                if (addGrupos != dValor) {
+                    var arrayGru = addGrupos.split("|")
+                    if (arrayGru != "" || arrayGru != null) {
+                        if (!arrayGru.includes(dValor)) {
+                            addGrupos = addGrupos + "|" + dValor;
+                        }
+                    }
+                    else
+                        addGrupos = addGrupos + "|" + dValor;
+                }
+
+            }
         }
     });
+
     $("#tblMttoUsuUT tbody tr").each(function (index, row) {
 
         var dValor = $(row).find("td").find("input[name='textCodUbiTec']").val()
@@ -442,8 +568,18 @@ function regMttoUsuAsig() {
         if (dValor.trim() != "") {
             if (addUbiTec == "")
                 addUbiTec = dValor;
-            else
-                addUbiTec = addUbiTec + "|" + dValor;
+            else {
+                if (addGrupos != dValor) {
+                    var arrayUT = addUbiTec.split("|")
+                    if (arrayUT != "" || arrayUT != null) {
+                        if (!arrayUT.includes(dValor)) {
+                            addUbiTec = addUbiTec + "|" + dValor;
+                        }
+                    }
+                    else
+                    addUbiTec = addUbiTec + "|" + dValor;
+                }
+            }             
         }
 
     });
@@ -454,8 +590,18 @@ function regMttoUsuAsig() {
         if (dValor.trim() != "") {
             if (addTipos == "")
                 addTipos = dValor;
-            else
-                addTipos = addTipos + "|" + dValor;
+            else {
+                if (addGrupos != dValor) {
+                    var arrayTip = addTipos.split("|")
+                    if (arrayTip != "" || arrayTip != null) {
+                        if (!arrayTip.includes(dValor)) {
+                            addTipos = addTipos + "|" + dValor;
+                        }
+                    }
+                    else
+                    addTipos = addTipos + "|" + dValor;
+                }
+            }               
         }
     });
 
@@ -485,7 +631,8 @@ function regMttoUsuAsig() {
         success: function (data) {
             $("#cargando").hide();
             if (data.Status == "OK") {
-                $.mobile.changePage('#pagConfMattUsu')
+
+                verPagConfMattUsu()
                 navigator.notification.alert("Datos registrados correctamente")
             }
             else
